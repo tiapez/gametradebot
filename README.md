@@ -50,6 +50,8 @@ python monitor.py
 
 ## Comandi nella chat Telegram
 
+Le schede di `/prodotti`, `/prenotazioni` e gli avvisi di nuovi prodotti includono immagine, nome e data di uscita (quando indicata sul sito), oltre a stato e link. La data di uscita è distinta dalla scadenza del preordine. Se manca la data compare "Non indicata sul sito"; se manca la foto o Telegram la rifiuta, viene inviato il testo. I vecchi dati si arricchiscono al successivo controllo normale: dopo un aggiornamento locale, chiudi l'ascolto con Ctrl+C, esegui `python monitor.py` e riavvia `python monitor.py --listen`. `/prenotazioni` legge subito i dati aggiornati dal sito.
+
 Dopo aver configurato token e Chat ID nella stessa finestra PowerShell:
 
 ```powershell

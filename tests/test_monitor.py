@@ -3,7 +3,8 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from monitor import parse_page, collect, update_category, product_messages, process_commands
+from monitor import (parse_page, collect, update_category, product_messages, process_commands,
+                     product_message, release_date, send_message, TelegramRejected)
 
 
 def page(items="", total=0, links=""):
@@ -15,6 +16,54 @@ def product(pid, title="Test &amp; carte"):
 
 
 class MonitorTests(unittest.TestCase):
+    def test_release_and_image_are_scoped_and_deadline_ignored(self):
+        html = page('<div class="product-card PRE-ORDER">'
+                    '<img src="https://www.lafumetteria.it/public/1.jpg">'
+                    '<div class="from_avail"><span class="meseanno">June 2027</span>'
+                    '<span class="from_day">04</span></div>'
+                    '<span class="expdate">Pre-order deadline <strong>10/15/2026</strong></span>'
+                    + product(1) + '</div><div class="product-card">' + product(2) + '</div>', 2)
+        items, _, _ = parse_page(html)
+        self.assertEqual(release_date(items['1']), '04 giugno 2027')
+        self.assertEqual(items['1']['image_url'], 'https://www.lafumetteria.it/public/1.jpg')
+        self.assertEqual(release_date(items['2']), 'Non indicata sul sito')
+        self.assertIsNone(items['2']['image_url'])
+
+    def test_send_photo_and_legacy_text(self):
+        calls = []
+        api = lambda method, payload, token: calls.append((method, payload))
+        p = {'title': 'Carte', 'url': 'url', 'image_url': 'https://example.com/a.jpg',
+             'release_month': 'April 2027', 'release_day': '23'}
+        send_message(product_message(p), 'fake', '123', api)
+        self.assertEqual(calls[0][0], 'sendPhoto')
+        self.assertIn('Carte\nData uscita: 23 aprile 2027', calls[0][1]['caption'])
+        send_message(product_message({'title': 'Vecchio', 'url': 'url'}), 'fake', '123', api)
+        self.assertEqual(calls[1][0], 'sendMessage')
+        self.assertIn('Immagine non disponibile', calls[1][1]['text'])
+
+    def test_photo_rejected_falls_back_but_timeout_does_not(self):
+        calls = []
+        def api(method, payload, token):
+            calls.append(method)
+            if method == 'sendPhoto':
+                raise TelegramRejected(400)
+        p = {'title': 'Carte', 'url': 'url', 'image_url': 'https://example.com/a.jpg'}
+        send_message(product_message(p), 'fake', '123', api)
+        self.assertEqual(calls, ['sendPhoto', 'sendMessage'])
+        def offline(*args):
+            raise RuntimeError('timeout')
+        with self.assertRaises(RuntimeError):
+            send_message(product_message(p), 'fake', '123', offline)
+
+    @patch('monitor.time.sleep')
+    def test_long_caption_is_sent_separately(self, _):
+        calls = []
+        p = {'title': 'A' * 1000, 'url': 'https://example.com/product', 'image_url': 'https://example.com/a.jpg'}
+        send_message(product_message(p), 'fake', '123', lambda m, p, t: calls.append((m, p)))
+        self.assertEqual([c[0] for c in calls], ['sendPhoto', 'sendMessage'])
+        self.assertNotIn('caption', calls[0][1])
+        self.assertIn('A' * 1000, calls[1][1]['text'])
+
     def test_preorder_scoped_to_card(self):
         html = page('<div class="product-card PRE-ORDER">' + product(1) + '</div>'
                     + '<div class="product-card">' + product(2) + '</div>', 2)

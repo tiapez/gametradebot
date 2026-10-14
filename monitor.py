@@ -5,6 +5,7 @@ import os
 import re
 import time
 import urllib.request
+import urllib.error
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
@@ -25,6 +26,8 @@ class CatalogParser(HTMLParser):
         self.found_catalog = False
         self.preorder = None
         self.card_depth = None
+        self.card = {}
+        self.date_part = None
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -36,6 +39,14 @@ class CatalogParser(HTMLParser):
             if "catalog" in self.divs and "product-card" in classes:
                 self.preorder = "PRE-ORDER" in classes
                 self.card_depth = len(self.divs)
+                self.card = {"image_url": None, "release_month": "", "release_day": ""}
+        if self.card_depth is not None:
+            if tag == "img" and not self.card.get("image_url"):
+                image = urljoin(BASE, attrs.get("src", ""))
+                if urlsplit(image).scheme == "https" and urlsplit(image).hostname in ("www.gametrade.it", "www.lafumetteria.it"):
+                    self.card["image_url"] = image
+            if tag == "span":
+                self.date_part = "release_month" if "meseanno" in classes else "release_day" if "from_day" in classes else None
         if tag == "span" and "show-resuilt" in classes:
             self.in_summary = True
         if tag == "a":
@@ -52,20 +63,26 @@ class CatalogParser(HTMLParser):
             self.current[2].append(data)
         if self.in_summary:
             self.summary.append(data)
+        if self.date_part:
+            self.card[self.date_part] += data
 
     def handle_endtag(self, tag):
         if tag == "a" and self.current is not None:
             pid, url, parts = self.current
             title = " ".join("".join(parts).split())
             if title:
-                self.products[pid] = {"title": title, "url": url, "preorder": self.preorder}
+                self.products[pid] = self.card.copy()
+                self.products[pid].update(title=title, url=url, preorder=self.preorder)
             self.current = None
         if tag == "span":
             self.in_summary = False
+            self.date_part = None
         if tag == "div" and self.divs:
             if len(self.divs) == self.card_depth:
                 self.preorder = None
                 self.card_depth = None
+                self.card = {}
+                self.date_part = None
             self.divs.pop()
 
 
@@ -121,17 +138,75 @@ def collect(url, fetch=download):
     return products
 
 
+class TelegramRejected(RuntimeError):
+    def __init__(self, code):
+        super().__init__("Telegram ha rifiutato la richiesta")
+        self.code = code
+
+
 def telegram(method, payload, token):
     request = urllib.request.Request(f"https://api.telegram.org/bot{token}/{method}", data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             result = json.load(response)
+    except urllib.error.HTTPError as exc:
+        raise TelegramRejected(exc.code) from None
     except (OSError, ValueError):
         # Non stampare eccezioni urllib: l'URL contiene il token.
         raise RuntimeError("Telegram non raggiungibile o credenziali non valide") from None
     if not result.get("ok"):
-        raise RuntimeError("Telegram ha rifiutato la richiesta")
+        raise TelegramRejected(result.get("error_code"))
     return result["result"]
+
+
+class ProductMessage(str):
+    """Text plus optional photo, shared by alerts and catalog commands."""
+    def __new__(cls, text, image_url=None):
+        message = super().__new__(cls, text)
+        message.image_url = image_url
+        return message
+
+
+def release_date(product):
+    month = " ".join(product.get("release_month", "").split())
+    day = " ".join(product.get("release_day", "").split())
+    months = dict(zip("January February March April May June July August September October November December".split(),
+                      "gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre".split()))
+    for english, italian in months.items():
+        month = re.sub(r"\b" + english + r"\b", italian, month, flags=re.I)
+    return " ".join(filter(None, [day, month])) if month else "Non indicata sul sito"
+
+
+def product_message(product, detail=""):
+    text = f"{product['title'][:1000]}\nData uscita: {release_date(product)}"
+    if detail:
+        text += f"\n{detail}"
+    text += f"\n{product['url']}"
+    if not product.get("image_url"):
+        text += "\nImmagine non disponibile"
+    return ProductMessage(text, product.get("image_url"))
+
+
+def send_message(message, token, chat, api=telegram):
+    image = getattr(message, "image_url", None)
+    if image:
+        # Telegram captions have a smaller limit than ordinary messages.
+        short = len(message.encode("utf-16-le")) // 2 <= 1024
+        payload = {"chat_id": chat, "photo": image}
+        if short:
+            payload["caption"] = str(message)
+        try:
+            api("sendPhoto", payload, token)
+        except TelegramRejected as exc:
+            if exc.code != 400:
+                raise
+            message = str(message) + "\nImmagine non disponibile su Telegram."
+        else:
+            if short:
+                return
+            time.sleep(1.1)
+    api("sendMessage", {"chat_id": chat, "text": str(message),
+                        "link_preview_options": {"is_disabled": True}}, token)
 
 
 def save(path, state):
@@ -156,7 +231,7 @@ def update_category(state, category, products, send, persist):
             seen[pid] = dict(product, present=True)
             persist()
             continue
-        send(f"Nuovo prodotto {category}\n\n{product['title'][:1000]}\n\n{product['url']}")
+        send(product_message(product, f"Nuovo prodotto {category}"))
         seen[pid] = product
         persist()
         time.sleep(1.1)
@@ -182,7 +257,7 @@ def product_messages(catalog, preorders=False, categories=None):
                 status = "Non indicato come preordine"
             else:
                 status = "Stato prenotazione non ancora rilevato"
-            text = f"{category} · ID {pid}\n{p['title'][:1000]}\n{status}\n{p['url']}"
+            text = product_message(p, f"{category} · {status}")
             if len(text) > 3500:
                 raise ValueError("Scheda prodotto troppo lunga per Telegram")
             yield text
@@ -197,8 +272,7 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
     updates = api("getUpdates", {"offset": offset, "timeout": 0, "allowed_updates": ["message"]}, token)
 
     def reply(text):
-        api("sendMessage", {"chat_id": chat, "text": text,
-                           "link_preview_options": {"is_disabled": True}}, token)
+        send_message(text, token, chat, api)
         time.sleep(1.1)
 
     for update in updates:
@@ -251,7 +325,7 @@ def main():
         return
     if not args.dry_run and not chat:
         raise ValueError("Impostare TELEGRAM_CHAT_ID")
-    send = lambda message: telegram("sendMessage", {"chat_id": chat, "text": message, "link_preview_options": {"is_disabled": True}}, token)
+    send = lambda message: send_message(message, token, chat)
     if args.test_message:
         send("Bot Gametrade collegato: avvisi One Piece e Naruto.")
         return
