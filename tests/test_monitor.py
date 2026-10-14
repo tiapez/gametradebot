@@ -1,6 +1,9 @@
 import unittest
+import json
+import tempfile
+from pathlib import Path
 from unittest.mock import patch
-from monitor import parse_page, collect, update_category
+from monitor import parse_page, collect, update_category, product_messages, process_commands
 
 
 def page(items="", total=0, links=""):
@@ -12,6 +15,49 @@ def product(pid, title="Test &amp; carte"):
 
 
 class MonitorTests(unittest.TestCase):
+    def test_preorder_scoped_to_card(self):
+        html = page('<div class="product-card PRE-ORDER">' + product(1) + '</div>'
+                    + '<div class="product-card">' + product(2) + '</div>', 2)
+        items, _, _ = parse_page(html)
+        self.assertIs(items['1']['preorder'], True)
+        self.assertIs(items['2']['preorder'], False)
+
+    def test_report_old_state_and_preorder_filter(self):
+        products = {'1': {'title': 'Old', 'url': 'url'},
+                    '2': {'title': 'New', 'url': 'url', 'preorder': True}}
+        messages = list(product_messages({'Naruto': products}, True, ['Naruto']))
+        self.assertEqual(len(messages), 2)
+        self.assertIn('New', messages[1])
+        self.assertIn('non ancora rilevato', list(product_messages({'Naruto': {'1': products['1']}}, categories=['Naruto']))[1])
+
+    @patch('monitor.time.sleep')
+    def test_commands_authorization_offset_and_live_preorders(self, _):
+        with tempfile.TemporaryDirectory() as folder:
+            state, offset = Path(folder) / 'state.json', Path(folder) / 'offset.json'
+            state.write_text('{"Naruto": {}}', encoding='utf-8')
+            replies, fetched = [], []
+            updates = [
+                {'update_id': 1, 'message': {'chat': {'id': 999}, 'text': '/prenotazioni'}},
+                {'update_id': 2, 'message': {'chat': {'id': 123}, 'text': '/prodotti'}},
+                {'update_id': 3, 'message': {'chat': {'id': 123}, 'text': '/prenotazioni'}},
+            ]
+            def api(method, payload, token):
+                if method == 'getUpdates':
+                    return [u for u in updates if u['update_id'] >= payload['offset']]
+                self.assertEqual(payload['chat_id'], '123')
+                replies.append(payload['text'])
+                return {}
+            def fetch(url):
+                fetched.append(url)
+                return {'4': {'title': 'Preorder', 'url': 'url', 'preorder': True}}
+            process_commands(state, offset, 'fake', '123', api, fetch)
+            self.assertEqual(len(fetched), 2)
+            self.assertEqual(json.loads(offset.read_text()), 4)
+            self.assertEqual(state.read_text(), '{"Naruto": {}}')
+            count = len(replies)
+            process_commands(state, offset, 'fake', '123', api, fetch)
+            self.assertEqual(len(replies), count)
+
     def test_excludes_recommendations_and_decodes_entities(self):
         items, _, total = parse_page(page(product(123), 1) + product(999))
         self.assertEqual(set(items), {"123"})

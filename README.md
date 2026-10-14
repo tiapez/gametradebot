@@ -46,7 +46,26 @@ python monitor.py --dry-run
 python monitor.py
 ```
 
-`--dry-run` legge il sito senza inviare messaggi e senza salvare lo stato. L'esecuzione normale effettua un singolo controllo; online la ripetizione è gestita da GitHub Actions. Il bot invia avvisi ma non risponde ai comandi in chat.
+`--dry-run` legge il sito senza inviare messaggi e senza salvare lo stato. L'esecuzione normale effettua un singolo controllo; online la ripetizione è gestita da GitHub Actions.
+
+## Comandi nella chat Telegram
+
+Dopo aver configurato token e Chat ID nella stessa finestra PowerShell:
+
+```powershell
+python monitor.py
+python monitor.py --listen
+```
+
+Il primo comando aggiorna il database, il secondo resta in ascolto (Ctrl+C per uscire). Nella chat del bot scrivi:
+
+- `/prodotti`: elenco dei prodotti nel database locale, con stato rilevato all'ultimo controllo. Include lo storico e distingue quelli non più presenti. Per i vecchi dati senza stato di prenotazione, esegui un controllo per aggiornarli.
+- `/prenotazioni`: rilegge le due categorie e invia solo i prodotti contrassegnati PRE-ORDER sul sito in quel momento. Non modifica la memoria delle notifiche. Un preordine sul sito non certifica un ordine o una prenotazione effettuata dal tuo account.
+- `/aiuto`: riepilogo dei comandi.
+
+Le risposte arrivano solo alla chat configurata. `--listen` gestisce le richieste ma non esegue controlli automatici del catalogo: `/prenotazioni` legge sempre il sito, `/prodotti` legge il file locale. Non usare contemporaneamente l'ascolto locale e Actions sullo stesso bot: sospendi il workflow durante le prove locali, quindi riattivalo dopo aver chiuso l'ascolto. Le due copie hanno database separati.
+
+Online il workflow gestisce i comandi ogni 30 minuti, con possibili ritardi di GitHub; non è una risposta istantanea. `python monitor.py --commands` gestisce le richieste in attesa una sola volta. Il file `data/telegram_offset.json` memorizza l'ultima richiesta elaborata, senza contenuti delle chat o credenziali. Non cancellarlo. Telegram conserva le richieste in attesa per un tempo limitato; non lasciare il bot inattivo per giorni se vuoi ricevere risposta ai comandi. Un errore dopo una risposta ma prima del salvataggio può far ripetere la risposta al tentativo successivo.
 
 ## Costi e limiti
 

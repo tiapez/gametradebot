@@ -23,6 +23,8 @@ class CatalogParser(HTMLParser):
         self.summary = []
         self.in_summary = False
         self.found_catalog = False
+        self.preorder = None
+        self.card_depth = None
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -31,6 +33,9 @@ class CatalogParser(HTMLParser):
             marker = attrs.get("id") == "listaarticoli"
             self.found_catalog |= marker
             self.divs.append("catalog" if marker else "title" if "product-title" in classes else "pages" if "pagination" in classes else "")
+            if "catalog" in self.divs and "product-card" in classes:
+                self.preorder = "PRE-ORDER" in classes
+                self.card_depth = len(self.divs)
         if tag == "span" and "show-resuilt" in classes:
             self.in_summary = True
         if tag == "a":
@@ -53,11 +58,14 @@ class CatalogParser(HTMLParser):
             pid, url, parts = self.current
             title = " ".join("".join(parts).split())
             if title:
-                self.products[pid] = {"title": title, "url": url}
+                self.products[pid] = {"title": title, "url": url, "preorder": self.preorder}
             self.current = None
         if tag == "span":
             self.in_summary = False
         if tag == "div" and self.divs:
+            if len(self.divs) == self.card_depth:
+                self.preorder = None
+                self.card_depth = None
             self.divs.pop()
 
 
@@ -140,8 +148,13 @@ def update_category(state, category, products, send, persist):
         print(f"{category}: inizializzati {len(products)} prodotti")
         return
     seen = state[category]
+    for pid, product in seen.items():
+        product["present"] = pid in products
+    persist()
     for pid, product in products.items():
         if pid in seen:
+            seen[pid] = dict(product, present=True)
+            persist()
             continue
         send(f"Nuovo prodotto {category}\n\n{product['title'][:1000]}\n\n{product['url']}")
         seen[pid] = product
@@ -150,12 +163,82 @@ def update_category(state, category, products, send, persist):
     print(f"{category}: controllati {len(products)} prodotti")
 
 
+def product_messages(catalog, preorders=False, categories=None):
+    """One bounded message per product; never silently truncate a catalog."""
+    for category in CATEGORIES if categories is None else categories:
+        if category not in catalog:
+            yield f"{category}: database non ancora inizializzato. Esegui prima un controllo."
+            continue
+        items = [(pid, p) for pid, p in catalog[category].items()
+                 if not preorders or p.get("preorder") is True]
+        label = "in prenotazione sul sito ora" if preorders else "nel database (ultimo controllo)"
+        yield f"{category}: {len(items)} prodotti {label}."
+        for pid, p in items:
+            if p.get("present") is False:
+                status = "Non presente all'ultimo controllo"
+            elif p.get("preorder") is True:
+                status = "In prenotazione"
+            elif p.get("preorder") is False:
+                status = "Non indicato come preordine"
+            else:
+                status = "Stato prenotazione non ancora rilevato"
+            text = f"{category} · ID {pid}\n{p['title'][:1000]}\n{status}\n{p['url']}"
+            if len(text) > 3500:
+                raise ValueError("Scheda prodotto troppo lunga per Telegram")
+            yield text
+
+
+HELP = ("Comandi Gametrade:\n/prodotti - prodotti nel database, incluso lo storico\n"
+        "/prenotazioni - preordini attuali riletti dal sito\n/aiuto - questo messaggio")
+
+
+def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect):
+    offset = json.loads(offset_path.read_text(encoding="utf-8")) if offset_path.exists() else 0
+    updates = api("getUpdates", {"offset": offset, "timeout": 0, "allowed_updates": ["message"]}, token)
+
+    def reply(text):
+        api("sendMessage", {"chat_id": chat, "text": text,
+                           "link_preview_options": {"is_disabled": True}}, token)
+        time.sleep(1.1)
+
+    for update in updates:
+        message = update.get("message", {})
+        # Only the configured owner can request data or trigger website reads.
+        if str(message.get("chat", {}).get("id")) == str(chat):
+            text = message.get("text", "").strip()
+            command = text.split()[0].split("@")[0].lower() if text else ""
+            if command == "/prodotti":
+                state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
+                for text in product_messages(state):
+                    reply(text)
+            elif command == "/prenotazioni":
+                # Read live without marking new items as already notified.
+                for category, url in CATEGORIES.items():
+                    try:
+                        products = fetch_catalog(url)
+                    except Exception:
+                        reply(f"{category}: impossibile verificare le prenotazioni ora. Riprova piu tardi.")
+                        continue
+                    for text in product_messages({category: products}, preorders=True, categories=[category]):
+                        reply(text)
+            elif command in ("/start", "/help", "/aiuto"):
+                reply(HELP)
+            elif command.startswith("/"):
+                reply("Comando non riconosciuto.\n" + HELP)
+        offset = update["update_id"] + 1
+        save(offset_path, offset)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run", action="store_true", help="Legge il sito senza inviare o salvare")
-    parser.add_argument("--chat-id", action="store_true", help="Mostra le chat private che hanno scritto al bot")
-    parser.add_argument("--test-message", action="store_true")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--dry-run", action="store_true", help="Legge il sito senza inviare o salvare")
+    modes.add_argument("--chat-id", action="store_true", help="Mostra le chat private che hanno scritto al bot")
+    modes.add_argument("--test-message", action="store_true")
+    modes.add_argument("--listen", action="store_true", help="Risponde ai comandi Telegram fino a Ctrl+C")
+    modes.add_argument("--commands", action="store_true", help="Legge e gestisce i comandi Telegram una volta")
     parser.add_argument("--state", type=Path, default=Path("data/state.json"))
+    parser.add_argument("--offset", type=Path, default=Path("data/telegram_offset.json"))
     args = parser.parse_args()
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     chat = os.environ.get("TELEGRAM_CHAT_ID", "")
@@ -171,6 +254,21 @@ def main():
     send = lambda message: telegram("sendMessage", {"chat_id": chat, "text": message, "link_preview_options": {"is_disabled": True}}, token)
     if args.test_message:
         send("Bot Gametrade collegato: avvisi One Piece e Naruto.")
+        return
+    if args.commands or args.listen:
+        if args.commands:
+            process_commands(args.state, args.offset, token, chat)
+            return
+        print("In ascolto: /prodotti, /prenotazioni, /aiuto. Ctrl+C per uscire.", flush=True)
+        try:
+            while True:
+                try:
+                    process_commands(args.state, args.offset, token, chat)
+                except Exception as exc:
+                    print(f"Errore comandi: {type(exc).__name__}. Nuovo tentativo tra 10 secondi.", flush=True)
+                time.sleep(10)
+        except KeyboardInterrupt:
+            print("Ascolto terminato.")
         return
     state = json.loads(args.state.read_text(encoding="utf-8")) if args.state.exists() else {}
     if not isinstance(state, dict) or any(not isinstance(v, dict) for v in state.values()):
