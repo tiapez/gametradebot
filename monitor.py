@@ -181,7 +181,6 @@ def product_message(product, detail=""):
     text = f"{product['title'][:1000]}\nData uscita: {release_date(product)}"
     if detail:
         text += f"\n{detail}"
-    text += f"\n{product['url']}"
     if not product.get("image_url"):
         text += "\nImmagine non disponibile"
     return ProductMessage(text, product.get("image_url"))

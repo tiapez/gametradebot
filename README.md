@@ -1,6 +1,6 @@
 # Avvisi Gametrade su Telegram
 
-Controlla le categorie pubbliche One Piece e Naruto ogni 30 minuti e invia nome e link dei nuovi prodotti, inclusi i preordini. Python 3.11 o successivo, nessuna libreria da installare.
+Controlla le categorie pubbliche One Piece e Naruto ogni 30 minuti e invia nome, data di uscita e immagine dei nuovi prodotti, inclusi i preordini. Python 3.11 o successivo, nessuna libreria da installare.
 
 Al primo controllo di ciascuna categoria memorizza i prodotti presenti senza inviarli. Per "nuovo" si intende un identificativo mai osservato dopo questo primo controllo: non monitora riassortimenti, prezzi o cambi di disponibilità. I consigli in fondo alla pagina sono esclusi. Nessun account Gametrade richiesto; prodotti visibili soltanto dopo il login non sono coperti.
 
@@ -50,7 +50,7 @@ python monitor.py
 
 ## Comandi nella chat Telegram
 
-Le schede di `/prodotti`, `/prenotazioni` e gli avvisi di nuovi prodotti includono immagine, nome e data di uscita (quando indicata sul sito), oltre a stato e link. La data di uscita è distinta dalla scadenza del preordine. Se manca la data compare "Non indicata sul sito"; se manca la foto o Telegram la rifiuta, viene inviato il testo. I vecchi dati si arricchiscono al successivo controllo normale: dopo un aggiornamento locale, chiudi l'ascolto con Ctrl+C, esegui `python monitor.py` e riavvia `python monitor.py --listen`. `/prenotazioni` legge subito i dati aggiornati dal sito.
+Le schede di `/prodotti`, `/prenotazioni` e gli avvisi di nuovi prodotti includono immagine, nome e data di uscita (quando indicata sul sito), oltre allo stato, senza link. La data di uscita è distinta dalla scadenza del preordine. Se manca la data compare "Non indicata sul sito"; se manca la foto o Telegram la rifiuta, viene inviato il testo. I vecchi dati si arricchiscono al successivo controllo normale: dopo un aggiornamento locale, chiudi l'ascolto con Ctrl+C, esegui `python monitor.py` e riavvia `python monitor.py --listen`. `/prenotazioni` legge subito i dati aggiornati dal sito.
 
 Dopo aver configurato token e Chat ID nella stessa finestra PowerShell:
 
