@@ -12,6 +12,8 @@ jobs:
   monitor:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SUBSCRIBERS_KEY: ${{ secrets.SUBSCRIBERS_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,26 +21,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Installa dipendenze
+        run: python -m pip install -r requirements.txt
       - name: Test
         run: python -m unittest discover -s tests -v
-      - name: Controlla e notifica
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python monitor.py
-      - name: Rispondi ai comandi Telegram
-        if: ${{ !cancelled() }}
+      - name: Leggi iscrizioni e comandi prima degli avvisi
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python monitor.py --commands
+      - name: Controlla e notifica agli iscritti
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python monitor.py
       - name: Salva prodotti gia notificati anche in caso di errore parziale
         if: always()
         run: |
-          if [ ! -f data/state.json ] && [ ! -f data/telegram_offset.json ]; then exit 0; fi
+          if [ ! -f data/state.json ] && [ ! -f data/telegram_offset.json ] && [ ! -f data/subscribers.enc ]; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in data/state.json data/telegram_offset.json; do
+          for file in data/state.json data/telegram_offset.json data/subscribers.enc; do
             if [ -f "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi

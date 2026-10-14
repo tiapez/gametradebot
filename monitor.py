@@ -9,6 +9,7 @@ import urllib.error
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
+from cryptography.fernet import Fernet
 
 BASE = "https://www.gametrade.it"
 CATEGORIES = {"One Piece": BASE + "/Categoria/One_Piece/", "Naruto": BASE + "/Categoria/Naruto/"}
@@ -215,6 +216,74 @@ def save(path, state):
     temporary.replace(path)
 
 
+class Subscribers:
+    """Encrypted subscription list and per-recipient delivery queue."""
+    def __init__(self, path, owner="", key=None):
+        self.path = Path(path)
+        key = key or os.environ.get("SUBSCRIBERS_KEY")
+        if not key:
+            if os.environ.get("GITHUB_ACTIONS"):
+                raise ValueError("Configurare il secret SUBSCRIBERS_KEY prima di avviare Actions")
+            key_path = self.path.with_suffix(".key")
+            if not key_path.exists():
+                if self.path.exists():
+                    raise ValueError("Chiave iscrizioni mancante: ripristinarla prima di continuare")
+                key_path.parent.mkdir(parents=True, exist_ok=True)
+                key_path.write_bytes(Fernet.generate_key())
+            key = key_path.read_bytes()
+        self.cipher = Fernet(key)
+        if self.path.exists():
+            try:
+                self.users = json.loads(self.cipher.decrypt(self.path.read_bytes()))
+                if not isinstance(self.users, dict) or any(not isinstance(v, dict) for v in self.users.values()):
+                    raise ValueError()
+            except Exception:
+                raise ValueError("Archivio iscrizioni non leggibile: verificare SUBSCRIBERS_KEY") from None
+        else:
+            self.users = {str(owner): {}} if owner else {}
+            self.persist()
+
+    def persist(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.path.with_suffix(".tmp")
+        temporary.write_bytes(self.cipher.encrypt(json.dumps(self.users).encode()))
+        temporary.replace(self.path)
+
+    def subscribe(self, chat):
+        self.users.setdefault(str(chat), {})
+        self.persist()
+
+    def unsubscribe(self, chat):
+        self.users.pop(str(chat), None)
+        self.persist()
+
+    def enqueue(self, message):
+        for pending in self.users.values():
+            pending.setdefault(message.key, {"text": str(message), "image": message.image_url})
+        self.persist()
+
+    def deliver(self, token, api=telegram):
+        failed = False
+        for chat in list(self.users):
+            for key, item in list(self.users[chat].items()):
+                try:
+                    send_message(ProductMessage(item["text"], item["image"]), token, chat, api)
+                except TelegramRejected as exc:
+                    if exc.code == 403:
+                        self.unsubscribe(chat)
+                    else:
+                        failed = True
+                    break
+                except RuntimeError:
+                    failed = True
+                    break
+                del self.users[chat][key]
+                self.persist()
+                time.sleep(1.1)
+        if failed:
+            raise RuntimeError("Alcuni avvisi non consegnati: conservati per il prossimo tentativo")
+
+
 def update_category(state, category, products, send, persist):
     if category not in state:
         state[category] = products.copy()
@@ -230,7 +299,9 @@ def update_category(state, category, products, send, persist):
             seen[pid] = dict(product, present=True)
             persist()
             continue
-        send(product_message(product, f"Nuovo prodotto {category}"))
+        message = product_message(product, f"Nuovo prodotto {category}")
+        message.key = f"{category}:{pid}"
+        send(message)
         seen[pid] = product
         persist()
         time.sleep(1.1)
@@ -263,24 +334,44 @@ def product_messages(catalog, preorders=False, categories=None):
 
 
 HELP = ("Comandi Gametrade:\n/prodotti - prodotti nel database, incluso lo storico\n"
-        "/prenotazioni - preordini attuali riletti dal sito\n/aiuto - questo messaggio")
+        "/prenotazioni - preordini attuali riletti dal sito\n/start - attiva avvisi\n"
+        "/stop - disattiva avvisi e cancella l'iscrizione\n/aiuto - questo messaggio")
 
 
-def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect):
+def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect, subscribers=None):
+    subscribers = subscribers or Subscribers(state_path.parent / "subscribers.enc", chat)
     offset = json.loads(offset_path.read_text(encoding="utf-8")) if offset_path.exists() else 0
     updates = api("getUpdates", {"offset": offset, "timeout": 0, "allowed_updates": ["message"]}, token)
 
     def reply(text):
-        send_message(text, token, chat, api)
+        try:
+            send_message(text, token, destination, api)
+        except TelegramRejected as exc:
+            if exc.code != 403:
+                raise
+            subscribers.unsubscribe(destination)
         time.sleep(1.1)
 
     for update in updates:
         message = update.get("message", {})
-        # Only the configured owner can request data or trigger website reads.
-        if str(message.get("chat", {}).get("id")) == str(chat):
+        destination = str(message.get("chat", {}).get("id", ""))
+        if message.get("chat", {}).get("type") == "private" and destination:
             text = message.get("text", "").strip()
             command = text.split()[0].split("@")[0].lower() if text else ""
-            if command == "/prodotti":
+            if command == "/start":
+                subscribers.subscribe(destination)
+                reply("Iscrizione attiva! Riceverai le novita One Piece e Naruto.\n"
+                      "Conserviamo il tuo ID chat cifrato per inviarti gli avvisi. /stop per cancellare l'iscrizione.\n"
+                      "Su GitHub Actions rispondiamo al prossimo controllo (circa 30 minuti).\n\n" + HELP)
+            elif command == "/stop":
+                subscribers.unsubscribe(destination)
+                reply("Iscrizione cancellata. Non riceverai altri avvisi. /start per riattivarli.")
+            elif command in ("/help", "/aiuto"):
+                reply(HELP)
+            elif destination not in subscribers.users:
+                if command.startswith("/"):
+                    reply("Invia /start per attivare il bot nella tua chat privata.")
+            elif command == "/prodotti":
                 state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
                 for text in product_messages(state):
                     reply(text)
@@ -294,8 +385,6 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
                         continue
                     for text in product_messages({category: products}, preorders=True, categories=[category]):
                         reply(text)
-            elif command in ("/start", "/help", "/aiuto"):
-                reply(HELP)
             elif command.startswith("/"):
                 reply("Comando non riconosciuto.\n" + HELP)
         offset = update["update_id"] + 1
@@ -312,6 +401,7 @@ def main():
     modes.add_argument("--commands", action="store_true", help="Legge e gestisce i comandi Telegram una volta")
     parser.add_argument("--state", type=Path, default=Path("data/state.json"))
     parser.add_argument("--offset", type=Path, default=Path("data/telegram_offset.json"))
+    parser.add_argument("--subscribers", type=Path, default=Path("data/subscribers.enc"))
     args = parser.parse_args()
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     chat = os.environ.get("TELEGRAM_CHAT_ID", "")
@@ -322,21 +412,22 @@ def main():
         chats = {str(u["message"]["chat"]["id"]) for u in updates if u.get("message", {}).get("chat", {}).get("type") == "private"}
         print("Chat ID: " + ", ".join(sorted(chats)) if chats else "Apri il bot su Telegram, invia /start e riprova.")
         return
-    if not args.dry_run and not chat:
+    if args.test_message and not chat:
         raise ValueError("Impostare TELEGRAM_CHAT_ID")
     send = lambda message: send_message(message, token, chat)
     if args.test_message:
         send("Bot Gametrade collegato: avvisi One Piece e Naruto.")
         return
+    subscribers = None if args.dry_run else Subscribers(args.subscribers, chat)
     if args.commands or args.listen:
         if args.commands:
-            process_commands(args.state, args.offset, token, chat)
+            process_commands(args.state, args.offset, token, chat, subscribers=subscribers)
             return
         print("In ascolto: /prodotti, /prenotazioni, /aiuto. Ctrl+C per uscire.", flush=True)
         try:
             while True:
                 try:
-                    process_commands(args.state, args.offset, token, chat)
+                    process_commands(args.state, args.offset, token, chat, subscribers=subscribers)
                 except Exception as exc:
                     print(f"Errore comandi: {type(exc).__name__}. Nuovo tentativo tra 10 secondi.", flush=True)
                 time.sleep(10)
@@ -355,10 +446,16 @@ def main():
                 for product in products.values():
                     print("  " + product["title"])
             else:
-                update_category(state, category, products, send, lambda: save(args.state, state))
+                update_category(state, category, products, subscribers.enqueue, lambda: save(args.state, state))
         except Exception as exc:
             print(f"ERRORE {category}: {type(exc).__name__}: {exc}")
             errors.append(category)
+    if subscribers is not None:
+        try:
+            subscribers.deliver(token)
+        except RuntimeError as exc:
+            print(str(exc))
+            errors.append("consegna")
     if errors:
         raise SystemExit(1)
 

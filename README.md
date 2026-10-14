@@ -1,6 +1,6 @@
 # Avvisi Gametrade su Telegram
 
-Controlla le categorie pubbliche One Piece e Naruto ogni 30 minuti e invia nome, data di uscita e immagine dei nuovi prodotti, inclusi i preordini. Python 3.11 o successivo, nessuna libreria da installare.
+Controlla le categorie pubbliche One Piece e Naruto ogni 30 minuti e invia nome, data di uscita e immagine dei nuovi prodotti, inclusi i preordini. Supporta più iscritti, ognuno nella propria chat privata. Richiede Python 3.11 o successivo e `python -m pip install -r requirements.txt`.
 
 Al primo controllo di ciascuna categoria memorizza i prodotti presenti senza inviarli. Per "nuovo" si intende un identificativo mai osservato dopo questo primo controllo: non monitora riassortimenti, prezzi o cambi di disponibilità. I consigli in fondo alla pagina sono esclusi. Nessun account Gametrade richiesto; prodotti visibili soltanto dopo il login non sono coperti.
 
@@ -21,13 +21,25 @@ Annota il Chat ID restituito. Se appaiono più ID, invia un messaggio riconoscib
 
 ## 2. Attiva online con GitHub Actions
 
-1. Crea un repository **pubblico** su GitHub e carica `monitor.py`, `tests/`, `.gitignore` e `.github/workflows/monitor.yml`, mantenendo le cartelle. Non caricare le copie HTML locali o credenziali. Puoi usare GitHub Desktop per includere facilmente la cartella `.github`.
+1. Crea un repository **pubblico** su GitHub e carica `monitor.py`, `requirements.txt`, `tests/`, `.gitignore` e `.github/workflows/monitor.yml`, mantenendo le cartelle. Non caricare le copie HTML locali o credenziali. Puoi usare GitHub Desktop per includere facilmente la cartella `.github`.
 2. In **Settings → Secrets and variables → Actions → New repository secret**, crea:
    - `TELEGRAM_BOT_TOKEN`: il token di BotFather.
-   - `TELEGRAM_CHAT_ID`: il tuo Chat ID.
+   - `TELEGRAM_CHAT_ID`: il tuo Chat ID (facoltativo: ti iscrive automaticamente soltanto alla creazione dell'archivio; serve anche al messaggio di prova).
+   - `SUBSCRIBERS_KEY`: chiave per cifrare le iscrizioni, obbligatoria online. Generala sul tuo PC con il comando sotto, copiala nel secret e conservala. Non pubblicarla e non cambiarla senza migrare l'archivio cifrato esistente.
 3. In **Settings → Actions → General**, consenti al workflow di leggere e scrivere il repository. Le regole di protezione del branch devono permettere al bot di salvare `data/state.json`.
 4. In **Actions → Controlla Gametrade → Run workflow**, avvia la prima esecuzione sul branch predefinito. Deve terminare verde e creare `data/state.json`.
 5. Da quel momento il controllo è programmato ai minuti 17 e 47 di ogni ora. Non serve tenere acceso il PC.
+
+Generazione della chiave (il comando stampa una nuova chiave privata, da copiare solo nei segreti GitHub):
+
+```powershell
+python -m pip install -r requirements.txt
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Se esiste già `data/subscribers.enc` online, devi mantenere la chiave che lo ha creato. In locale, senza variabile `SUBSCRIBERS_KEY`, viene generato automaticamente `data/subscribers.key`, escluso da Git. Per trasferire iscrizioni locali online usa quella stessa chiave nel secret e trasferisci soltanto l'archivio `.enc`; non sovrascrivere un archivio online esistente con una copia locale diversa.
+
+Le iscrizioni e gli avvisi in attesa sono salvati in `data/subscribers.enc`, cifrato con [Fernet](https://cryptography.io/en/latest/fernet/). Gli ID delle chat non sono pubblicati in chiaro. Il bot conserva solo ID e messaggi ancora da consegnare, senza nomi, username o cronologia delle conversazioni. `/stop` cancella l'iscrizione e gli avvisi in coda dall'archivio corrente; le vecchie versioni cifrate rimangono nella cronologia Git. La chiave non va caricata nel repository. Se manca in Actions, il controllo si interrompe prima di inviare o modificare lo stato.
 
 Il file `data/state.json` viene creato **alla prima esecuzione online**, senza precompilare il catalogo durante lo sviluppo. Contiene solo identificativi, titoli e link pubblici. Non cancellarlo: è la memoria del bot. Non avviare due copie locali sullo stesso file e non usare copie locali e online per la stessa chat, altrimenti potresti ricevere duplicati.
 
@@ -41,6 +53,7 @@ python monitor.py --test-message
 ## Verifiche e uso locale
 
 ```powershell
+python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 python monitor.py --dry-run
 python monitor.py
@@ -64,8 +77,12 @@ Il primo comando aggiorna il database, il secondo resta in ascolto (Ctrl+C per u
 - `/prodotti`: elenco dei prodotti nel database locale, con stato rilevato all'ultimo controllo. Include lo storico e distingue quelli non più presenti. Per i vecchi dati senza stato di prenotazione, esegui un controllo per aggiornarli.
 - `/prenotazioni`: rilegge le due categorie e invia solo i prodotti contrassegnati PRE-ORDER sul sito in quel momento. Non modifica la memoria delle notifiche. Un preordine sul sito non certifica un ordine o una prenotazione effettuata dal tuo account.
 - `/aiuto`: riepilogo dei comandi.
+- `/start`: iscrive la propria chat privata agli avvisi One Piece e Naruto; ripeterlo non crea duplicati.
+- `/stop`: cancella l'iscrizione e gli avvisi ancora in attesa. Vale anche per il proprietario.
 
-Le risposte arrivano solo alla chat configurata. `--listen` gestisce le richieste ma non esegue controlli automatici del catalogo: `/prenotazioni` legge sempre il sito, `/prodotti` legge il file locale. Non usare contemporaneamente l'ascolto locale e Actions sullo stesso bot: sospendi il workflow durante le prove locali, quindi riattivalo dopo aver chiuso l'ascolto. Le due copie hanno database separati.
+Condividi con gli amici il link Telegram del bot: ciascuno preme Avvia o scrive `/start`. Le risposte arrivano nella chat di chi le richiede e le novità vengono inviate a tutti gli iscritti. Le chat di gruppo sono ignorate. Chi non è iscritto può usare `/aiuto`, `/start` e `/stop`; gli altri comandi richiedono prima `/start`. I nuovi iscritti non ricevono automaticamente lo storico: possono consultarlo con `/prodotti`.
+
+`--listen` gestisce le richieste ma non esegue controlli automatici del catalogo: `/prenotazioni` legge sempre il sito, `/prodotti` legge il file locale. Non usare contemporaneamente l'ascolto locale e Actions sullo stesso bot: sospendi il workflow durante le prove locali, quindi riattivalo dopo aver chiuso l'ascolto. Le due copie hanno database e iscrizioni separati. Per un controllo locale completo, esegui prima `python monitor.py --commands` e poi `python monitor.py`, così vengono elaborate le disiscrizioni prima degli avvisi.
 
 Online il workflow gestisce i comandi ogni 30 minuti, con possibili ritardi di GitHub; non è una risposta istantanea. `python monitor.py --commands` gestisce le richieste in attesa una sola volta. Il file `data/telegram_offset.json` memorizza l'ultima richiesta elaborata, senza contenuti delle chat o credenziali. Non cancellarlo. Telegram conserva le richieste in attesa per un tempo limitato; non lasciare il bot inattivo per giorni se vuoi ricevere risposta ai comandi. Un errore dopo una risposta ma prima del salvataggio può far ripetere la risposta al tentativo successivo.
 
@@ -74,7 +91,7 @@ Online il workflow gestisce i comandi ogni 30 minuti, con possibili ritardi di G
 - GitHub Actions è gratuito sui repository pubblici con runner standard. I repository privati hanno quote: non presumere che qualsiasi frequenza sia gratuita. [Prezzi ufficiali](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 - L'orario non è garantito: i controlli programmati possono essere ritardati o saltati. Nei repository pubblici GitHub disabilita i workflow programmati dopo 60 giorni senza attività del repository: verifica periodicamente la sezione Actions e riattivali se necessario. [Documentazione schedule](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 - Se il sito cambia struttura, blocca le richieste o restituisce un catalogo incompleto, il controllo fallisce senza cancellare la memoria. L'altra categoria viene comunque controllata. Abilita le notifiche GitHub per i workflow falliti: gli errori non generano avvisi Telegram.
-- Lo stato viene salvato dopo ciascun invio riuscito e pubblicato anche dopo errori parziali. Un arresto fra invio e salvataggio, un timeout ambiguo di Telegram o un errore nel salvataggio su GitHub possono produrre un avviso duplicato; la consegna esattamente una volta non è garantita.
+- Le novità sono messe in coda per ciascun iscritto prima di aggiornare il catalogo. Ogni consegna riuscita viene rimossa dalla sua coda; gli errori temporanei vengono ritentati al controllo successivo senza reinviare agli altri destinatari. Chi blocca il bot viene disiscritto. Un arresto fra invio e salvataggio, un timeout ambiguo di Telegram o un errore nel salvataggio su GitHub possono produrre un avviso duplicato; la consegna esattamente una volta non è garantita.
 - La paginazione segue collegamenti della stessa categoria e verifica il totale. Se Gametrade introducesse una paginazione JavaScript diversa, servirà aggiornare il lettore.
 
 Riferimento Telegram: [creazione bot](https://core.telegram.org/bots/tutorial), [API](https://core.telegram.org/bots/api).

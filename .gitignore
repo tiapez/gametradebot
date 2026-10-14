@@ -3,3 +3,5 @@ __pycache__/
 .venv/
 *.html
 data/*.tmp
+*.key
+data/subscribers.json

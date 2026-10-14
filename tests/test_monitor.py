@@ -4,7 +4,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 from monitor import (parse_page, collect, update_category, product_messages, process_commands,
-                     product_message, release_date, send_message, TelegramRejected)
+                     product_message, release_date, send_message, TelegramRejected, Subscribers)
+from cryptography.fernet import Fernet
 
 
 def page(items="", total=0, links=""):
@@ -86,25 +87,26 @@ class MonitorTests(unittest.TestCase):
             state.write_text('{"Naruto": {}}', encoding='utf-8')
             replies, fetched = [], []
             updates = [
-                {'update_id': 1, 'message': {'chat': {'id': 999}, 'text': '/prenotazioni'}},
-                {'update_id': 2, 'message': {'chat': {'id': 123}, 'text': '/prodotti'}},
-                {'update_id': 3, 'message': {'chat': {'id': 123}, 'text': '/prenotazioni'}},
+                {'update_id': 1, 'message': {'chat': {'id': 999, 'type': 'private'}, 'text': '/prenotazioni'}},
+                {'update_id': 2, 'message': {'chat': {'id': 123, 'type': 'private'}, 'text': '/prodotti'}},
+                {'update_id': 3, 'message': {'chat': {'id': 123, 'type': 'private'}, 'text': '/prenotazioni'}},
             ]
             def api(method, payload, token):
                 if method == 'getUpdates':
                     return [u for u in updates if u['update_id'] >= payload['offset']]
-                self.assertEqual(payload['chat_id'], '123')
+                self.assertIn(payload['chat_id'], ('123', '999'))
                 replies.append(payload['text'])
                 return {}
             def fetch(url):
                 fetched.append(url)
                 return {'4': {'title': 'Preorder', 'url': 'url', 'preorder': True}}
-            process_commands(state, offset, 'fake', '123', api, fetch)
+            subscribers = Subscribers(Path(folder) / 'subscribers.enc', '123', Fernet.generate_key())
+            process_commands(state, offset, 'fake', '123', api, fetch, subscribers)
             self.assertEqual(len(fetched), 2)
             self.assertEqual(json.loads(offset.read_text()), 4)
             self.assertEqual(state.read_text(), '{"Naruto": {}}')
             count = len(replies)
-            process_commands(state, offset, 'fake', '123', api, fetch)
+            process_commands(state, offset, 'fake', '123', api, fetch, subscribers)
             self.assertEqual(len(replies), count)
 
     def test_excludes_recommendations_and_decodes_entities(self):
