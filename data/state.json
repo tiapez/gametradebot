@@ -6,7 +6,8 @@
       "release_day": "",
       "title": "One Piece Card Game Special Goods Set - Former Four Emperors",
       "url": "https://www.gametrade.it/Product/143015/One_Piece_Card_Game_Special_Goods_Set_-_Former_Four_Emperors",
-      "preorder": false
+      "preorder": false,
+      "present": true
     },
     "149119": {
       "image_url": "https://www.lafumetteria.it/public/One_Piece/One_Piece/215x215/149119.jpg",
@@ -14,7 +15,8 @@
       "release_day": "04",
       "title": "Display 12x One Piece Card Game Official Sleeves 18 - 4 assorted",
       "url": "https://www.gametrade.it/Product/149119/Display_12x_One_Piece_Card_Game_Official_Sleeves_18_-_4_assorted",
-      "preorder": true
+      "preorder": true,
+      "present": true
     },
     "149046": {
       "image_url": "https://www.lafumetteria.it/public/One_Piece/One_Piece/215x215/149046.jpg",
@@ -22,7 +24,8 @@
       "release_day": "23",
       "title": "Box One Piece Card Game Premium Extra Booster [PEB-01] (TCG+ priority) 12 packs",
       "url": "https://www.gametrade.it/Product/149046/Box_One_Piece_Card_Game_Premium_Extra_Booster_PEB-01_(TCG_priority)_12_packs",
-      "preorder": true
+      "preorder": true,
+      "present": true
     },
     "148899": {
       "image_url": "https://www.lafumetteria.it/public/One_Piece/One_Piece/215x215/148899.jpg",
@@ -30,7 +33,8 @@
       "release_day": "02",
       "title": "One Piece Card Game Premium Card Collection Best Selection Ace & Sabo & Luffy (TCG+ only)",
       "url": "https://www.gametrade.it/Product/148899/One_Piece_Card_Game_Premium_Card_Collection_Best_Selection_Ace_and_Sabo_and_Luffy_(TCG_only)",
-      "preorder": true
+      "preorder": true,
+      "present": true
     },
     "143903": {
       "image_url": "https://www.lafumetteria.it/public/One_Piece/One_Piece/215x215/143903.jpg",
@@ -38,7 +42,8 @@
       "release_day": "",
       "title": "One Piece Card Game Official Playmat Limited Edition Vol.1 + Dash Pack 2025 Gift",
       "url": "https://www.gametrade.it/Product/143903/One_Piece_Card_Game_Official_Playmat_Limited_Edition_Vol1__Dash_Pack_2025_Gift",
-      "preorder": false
+      "preorder": false,
+      "present": true
     },
     "144961": {
       "image_url": "https://www.lafumetteria.it/public/One_Piece/One_Piece/215x215/144961.jpg",
@@ -46,7 +51,8 @@
       "release_day": "",
       "title": "One Piece Card Game Official Playmat Limited Edition Vol.2 + Dash Pack 2025 Gift",
       "url": "https://www.gametrade.it/Product/144961/One_Piece_Card_Game_Official_Playmat_Limited_Edition_Vol2__Dash_Pack_2025_Gift_",
-      "preorder": false
+      "preorder": false,
+      "present": true
     }
   },
   "Naruto": {}
