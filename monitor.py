@@ -1,4 +1,4 @@
-"""Gametrade -> Telegram. Python 3.11+, nessuna dipendenza esterna."""
+"""Gametrade e Bandai London -> Telegram. Dipendenze in requirements.txt."""
 import argparse
 import json
 import os
@@ -10,6 +10,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 from cryptography.fernet import Fernet
+from datetime import datetime, timezone
+import bandai
 
 BASE = "https://www.gametrade.it"
 CATEGORIES = {"One Piece": BASE + "/Categoria/One_Piece/", "Naruto": BASE + "/Categoria/Naruto/"}
@@ -108,7 +110,7 @@ def download(url):
                 return response.read().decode("utf-8")
         except OSError:
             if attempt == 2:
-                raise RuntimeError("Impossibile leggere Gametrade") from None
+                raise RuntimeError("Impossibile leggere la pagina monitorata") from None
             time.sleep(2 ** attempt)
 
 
@@ -259,13 +261,28 @@ class Subscribers:
 
     def enqueue(self, message):
         for pending in self.users.values():
-            pending.setdefault(message.key, {"text": str(message), "image": message.image_url})
+            pending.setdefault(message.key, {"text": str(message), "image": message.image_url,
+                                             "expires_at": getattr(message, 'expires_at', None)})
         self.persist()
+
+    def prune_bandai_reminders(self, valid_keys):
+        changed = False
+        for pending in self.users.values():
+            for key in list(pending):
+                if key.startswith('bandai:reminder:') and key not in valid_keys:
+                    del pending[key]
+                    changed = True
+        if changed:
+            self.persist()
 
     def deliver(self, token, api=telegram):
         failed = False
         for chat in list(self.users):
             for key, item in list(self.users[chat].items()):
+                if item.get('expires_at') and datetime.fromisoformat(item['expires_at']) <= datetime.now(timezone.utc):
+                    del self.users[chat][key]
+                    self.persist()
+                    continue
                 try:
                     send_message(ProductMessage(item["text"], item["image"]), token, chat, api)
                 except TelegramRejected as exc:
@@ -335,10 +352,11 @@ def product_messages(catalog, preorders=False, categories=None):
 
 HELP = ("Comandi Gametrade:\n/prodotti - prodotti nel database, incluso lo storico\n"
         "/prenotazioni - preordini attuali riletti dal sito\n/start - attiva avvisi\n"
+        "/bandai - calendario aperture registrazioni London\n"
         "/stop - disattiva avvisi e cancella l'iscrizione\n/aiuto - questo messaggio")
 
 
-def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect, subscribers=None):
+def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect, subscribers=None, bandai_path=None):
     subscribers = subscribers or Subscribers(state_path.parent / "subscribers.enc", chat)
     offset = json.loads(offset_path.read_text(encoding="utf-8")) if offset_path.exists() else 0
     updates = api("getUpdates", {"offset": offset, "timeout": 0, "allowed_updates": ["message"]}, token)
@@ -360,7 +378,7 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
             command = text.split()[0].split("@")[0].lower() if text else ""
             if command == "/start":
                 subscribers.subscribe(destination)
-                reply("Iscrizione attiva! Riceverai le novita One Piece e Naruto.\n"
+                reply("Iscrizione attiva! Riceverai le novita One Piece e Naruto, i promemoria Bandai London e gli avvisi sulle modifiche della pagina.\n"
                       "Conserviamo il tuo ID chat cifrato per inviarti gli avvisi. /stop per cancellare l'iscrizione.\n"
                       "Su GitHub Actions rispondiamo al prossimo controllo (circa 30 minuti).\n\n" + HELP)
             elif command == "/stop":
@@ -371,6 +389,8 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
             elif destination not in subscribers.users:
                 if command.startswith("/"):
                     reply("Invia /start per attivare il bot nella tua chat privata.")
+            elif command == "/bandai":
+                reply(bandai.calendar_text(bandai_path or state_path.parent / 'bandai.json'))
             elif command == "/prodotti":
                 state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
                 for text in product_messages(state):
@@ -399,10 +419,16 @@ def main():
     modes.add_argument("--test-message", action="store_true")
     modes.add_argument("--listen", action="store_true", help="Risponde ai comandi Telegram fino a Ctrl+C")
     modes.add_argument("--commands", action="store_true", help="Legge e gestisce i comandi Telegram una volta")
+    modes.add_argument("--bandai-dry-run", action="store_true", help="Mostra orari Bandai senza inviare o salvare")
     parser.add_argument("--state", type=Path, default=Path("data/state.json"))
     parser.add_argument("--offset", type=Path, default=Path("data/telegram_offset.json"))
     parser.add_argument("--subscribers", type=Path, default=Path("data/subscribers.enc"))
+    parser.add_argument("--bandai-state", type=Path, default=Path("data/bandai.json"))
     args = parser.parse_args()
+    if args.bandai_dry_run:
+        for event in bandai.extract_events(bandai.parse_article(download(bandai.URL))):
+            print(bandai.event_line(event))
+        return
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     chat = os.environ.get("TELEGRAM_CHAT_ID", "")
     if not args.dry_run and not token:
@@ -421,13 +447,13 @@ def main():
     subscribers = None if args.dry_run else Subscribers(args.subscribers, chat)
     if args.commands or args.listen:
         if args.commands:
-            process_commands(args.state, args.offset, token, chat, subscribers=subscribers)
+            process_commands(args.state, args.offset, token, chat, subscribers=subscribers, bandai_path=args.bandai_state)
             return
         print("In ascolto: /prodotti, /prenotazioni, /aiuto. Ctrl+C per uscire.", flush=True)
         try:
             while True:
                 try:
-                    process_commands(args.state, args.offset, token, chat, subscribers=subscribers)
+                    process_commands(args.state, args.offset, token, chat, subscribers=subscribers, bandai_path=args.bandai_state)
                 except Exception as exc:
                     print(f"Errore comandi: {type(exc).__name__}. Nuovo tentativo tra 10 secondi.", flush=True)
                 time.sleep(10)
@@ -451,6 +477,11 @@ def main():
             print(f"ERRORE {category}: {type(exc).__name__}: {exc}")
             errors.append(category)
     if subscribers is not None:
+        try:
+            bandai.run_check(args.bandai_state, download, subscribers, ProductMessage, save)
+        except Exception as exc:
+            print(f"ERRORE Bandai: {type(exc).__name__}: {exc}")
+            errors.append('Bandai')
         try:
             subscribers.deliver(token)
         except RuntimeError as exc:

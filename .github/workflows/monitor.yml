@@ -38,10 +38,9 @@ jobs:
       - name: Salva prodotti gia notificati anche in caso di errore parziale
         if: always()
         run: |
-          if [ ! -f data/state.json ] && [ ! -f data/telegram_offset.json ] && [ ! -f data/subscribers.enc ]; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in data/state.json data/telegram_offset.json data/subscribers.enc; do
+          for file in data/state.json data/telegram_offset.json data/subscribers.enc data/bandai.json; do
             if [ -f "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi

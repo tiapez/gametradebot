@@ -86,7 +86,22 @@ Condividi con gli amici il link Telegram del bot: ciascuno preme Avvia o scrive 
 
 Online il workflow gestisce i comandi ogni 30 minuti, con possibili ritardi di GitHub; non è una risposta istantanea. `python monitor.py --commands` gestisce le richieste in attesa una sola volta. Il file `data/telegram_offset.json` memorizza l'ultima richiesta elaborata, senza contenuti delle chat o credenziali. Non cancellarlo. Telegram conserva le richieste in attesa per un tempo limitato; non lasciare il bot inattivo per giorni se vuoi ricevere risposta ai comandi. Un errore dopo una risposta ma prima del salvataggio può far ripetere la risposta al tentativo successivo.
 
-## Costi e limiti
+## Bandai London: promemoria e cambiamenti della pagina
+
+Il controllo normale include anche la [pagina Pre-Registration London 26-27](https://www.bandaicardgames-fest.com/26-27/en/london/news/london-pre-registrationd.html). Tutti gli iscritti ricevono:
+
+- Un promemoria 24 ore prima di ciascuna apertura con data e ora nella sezione "Registration Dates, Links". Viene spedito al primo controllo utile: con Actions può arrivare dopo l'orario previsto. Se un controllo viene saltato, viene recuperato solo prima dell'apertura, mai dopo.
+- Un avviso quando cambiano testo, link o riferimenti alle immagini dell'articolo, con un riepilogo prima/dopo e il link ufficiale. Menu, footer, script e differenze di soli spazi sono esclusi. Non rileva immagini sostituite mantenendo lo stesso URL.
+
+Il primo controllo salva il riferimento senza notificare una modifica. Le date vengono rilette e aggiornate automaticamente; un cambiamento non riconosciuto sospende i promemoria e invia un avviso. Un errore di rete non viene scambiato per una modifica. Gli avvisi di cambiamento e il calendario contengono il link alla fonte; le schede prodotto restano senza link.
+
+Sono monitorate le aperture delle registrazioni con orario esplicito, non le giornate dei tornei prive di orario. Gli anni impliciti si riferiscono a questa edizione: ottobre 2026 e gennaio 2027. GMT/BST vengono convertiti in Europe/Rome. Non si tratta di un controllo della disponibilità su Weeztix.
+
+Comando Telegram: `/bandai` mostra il calendario salvato. In locale, `python monitor.py --bandai-dry-run` legge e stampa le date senza inviare messaggi o modificare dati. `--listen` risponde ai comandi ma, come prima, non esegue il monitoraggio programmato: per controllare pagina e promemoria usa `python monitor.py`. Su Actions tutto è incluso nel controllo ogni 30 minuti, senza nuovi segreti.
+
+La memoria è `data/bandai.json`, salvata dal workflow insieme al catalogo. Non cancellarla per evitare nuovi avvisi su eventi già segnalati. Le consegne in attesa rimangono cifrate nell'archivio iscritti. Chi si iscrive dopo l'invio di un promemoria può consultare `/bandai`; non riceve automaticamente i promemoria già inviati. `/stop` interrompe anche gli avvisi Bandai.
+
+## Costi e limiti del servizio
 
 - GitHub Actions è gratuito sui repository pubblici con runner standard. I repository privati hanno quote: non presumere che qualsiasi frequenza sia gratuita. [Prezzi ufficiali](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 - L'orario non è garantito: i controlli programmati possono essere ritardati o saltati. Nei repository pubblici GitHub disabilita i workflow programmati dopo 60 giorni senza attività del repository: verifica periodicamente la sezione Actions e riattivali se necessario. [Documentazione schedule](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
