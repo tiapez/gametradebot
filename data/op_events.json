@@ -1,0 +1,204 @@
+{
+  "events": {
+    "https://en.onepiece-cardgame.com/events/02_361.html": {
+      "title": "Pirates League: ONE PIECE CARD GAME Official Shop Edition 2026",
+      "period": "August – November 2026",
+      "category": "Official Shop Only · Tournament",
+      "regulation": "",
+      "description": "Win your way through the qualifiers at official stores and join the Pirates League online!",
+      "url": "https://en.onepiece-cardgame.com/events/02_361.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/06/30/V8xhF8wpIpXQYEMl/thumbnail.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/02_452.html": {
+      "title": "Store Tournament 2026 Vol. 4",
+      "period": "October 1 – December 31, 2026",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Official Store Tournaments Continue!",
+      "url": "https://en.onepiece-cardgame.com/events/02_452.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/01/8kE4n1TftLvB8Bg7/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/02_483.html": {
+      "title": "tabletop.me 2026",
+      "period": "November 6 - 8, 2026",
+      "category": "Convention Event · Tournament · Demo",
+      "regulation": "",
+      "description": "Enjoy ONE PIECE CARD GAME at tabletop.me 2026!",
+      "url": "https://en.onepiece-cardgame.com/events/02_483.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/01/GLnYqkysPkjyPx5J/Webpage Logo.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/02_523.html": {
+      "title": "LUCCA COMICS & GAMES 2026",
+      "period": "October 28 - November 1, 2026",
+      "category": "Convention Event · Demo",
+      "regulation": "",
+      "description": "Join us at LUCCA COMICS & GAMES 2026 for ONE PIECE Card Game trial sessions, giveaways, and more!",
+      "url": "https://en.onepiece-cardgame.com/events/02_523.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/28/PzWM34NvbFIsEWFb/thumbnail.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/2026/championship/": {
+      "title": "Championship 26-27",
+      "period": "March 2026 – March 2027",
+      "category": "CHAMPIONSHIP",
+      "regulation": "Standard",
+      "description": "Witness the crowning of the best ONE PIECE CARD GAME player, the Card Game Pirate King!",
+      "url": "https://en.onepiece-cardgame.com/events/2026/championship/",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/03/23/z4QNh6SApF7IbFtP/bg_cs26-27_pc.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/26-27_Finals_Season_2.html": {
+      "title": "Championship 26-27 Finals Season 2",
+      "period": "January 2027",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "The Championship 26–27 Finals crown each region’s Card Game Pirate King and determine who advances to the World Championship 26–27 in Japan.",
+      "url": "https://en.onepiece-cardgame.com/events/26-27_Finals_Season_2.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/01/TKNP2cks6nium4N7/thumbnail_en_CS _Finals_Season2.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/Finals-2026s2-lcq.html": {
+      "title": "Championship 26-27 S2 Last Chance Qualifier",
+      "period": "January 2027",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Seize your last chance to advance to the regional finals!",
+      "url": "https://en.onepiece-cardgame.com/events/Finals-2026s2-lcq.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/10/22/2kPWsobbKBCeN54N/LCQ season 2.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/bcgfest25-26-orlando.html": {
+      "title": "BANDAI CARD GAMES Fest 26-27 in ORLANDO",
+      "period": "January 7-10, 2027",
+      "category": "OFFICIAL EVENTS · Tournament",
+      "regulation": "",
+      "description": "BANDAI CARD GAMES titles are gathered in ORLANDO!",
+      "url": "https://en.onepiece-cardgame.com/events/bcgfest25-26-orlando.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/08/19/4RV0zrSuH2un7z9G/thumbnail_Orlando.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/bcgfest26-27-london.html": {
+      "title": "BANDAI CARD GAMES Fest 26-27 in LONDON",
+      "period": "January 15-17, 2027",
+      "category": "OFFICIAL EVENTS · Tournament",
+      "regulation": "",
+      "description": "BANDAI CARD GAMES titles are gathered in LONDON!",
+      "url": "https://en.onepiece-cardgame.com/events/bcgfest26-27-london.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/08/26/5Tee4RE9NGtMPAzM/thumbnail_London.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/bcgfest26-27.html": {
+      "title": "BANDAI CARD GAMES Fest 26-27",
+      "period": "October 2026 –",
+      "category": "Tournament",
+      "regulation": "",
+      "description": "Enjoy Bandai’s trading card game titles and connecting with fellow fans at “BANDAI CARD GAMES Fest”, a card game event featuring BANDAI CARD GAMES’ titles!",
+      "url": "https://en.onepiece-cardgame.com/events/bcgfest26-27.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/07/28/U0GyftVhzr8FaAcW/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/extra-grand-battle-l-2026.html": {
+      "title": "Large Scale Extra Grand Battle 2026",
+      "period": "October 2026 onwards",
+      "category": "OFFICIAL EVENTS · Tournament",
+      "regulation": "Extra",
+      "description": "In this format, all cards released to date are legal for play, except for a limited number of banned cards.",
+      "url": "https://en.onepiece-cardgame.com/events/extra-grand-battle-l-2026.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/06/18/mzij9cYTzxAcEeqz/thumbnail_ExtraGrandBattle.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/flameflame_Coliseum.html": {
+      "title": "Flame-Flame Fruit Coliseum",
+      "period": "September 2026 onwards",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Fight your way to the top and win the one and only Flame-Flame Fruit!",
+      "url": "https://en.onepiece-cardgame.com/events/flameflame_Coliseum.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/06/16/Xb9LLG6tbuyCeo63/thumbnail_Flame-FlameFruitColiseum.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/heroines-battle-vol2.html": {
+      "title": "Heroines Battle Vol.2",
+      "period": "November 6 – December 6, 2026",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Let's battle using Heroines Leader cards only!",
+      "url": "https://en.onepiece-cardgame.com/events/heroines-battle-vol2.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/10/09/PtHAVjorvHelXWHu/thumbnail.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/malltour2026.html": {
+      "title": "ONE PIECE CARD GAME MALL TOUR 2026",
+      "period": "Starting August 13, 2026",
+      "category": "Convention Event · Demo",
+      "regulation": "",
+      "description": "Find a place nearest from you and join the Mall Tour!",
+      "url": "https://en.onepiece-cardgame.com/events/malltour2026.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/07/29/7nNWYLQKrtljNPap/thumbnail.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/pirates-party-vol3-2026.html": {
+      "title": "Pirates Party 2026 Vol. 3",
+      "period": "September 1 – October 31, 2026",
+      "category": "Regularly Held · Beginner",
+      "regulation": "Standard",
+      "description": "Set Sail for a More Casual Adventure!",
+      "url": "https://en.onepiece-cardgame.com/events/pirates-party-vol3-2026.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/08/19/eMiN4gT0xQHlnlJo/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/pirates-party-vol4-2026.html": {
+      "title": "Pirates Party 2026 Vol. 4",
+      "period": "November 1 – December 31, 2026",
+      "category": "Regularly Held · Beginner",
+      "regulation": "Standard",
+      "description": "Set Sail for a More Casual Adventure!",
+      "url": "https://en.onepiece-cardgame.com/events/pirates-party-vol4-2026.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/10/07/w8HFkJPoTM6eXVeg/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/regional-season2-26-27.html": {
+      "title": "Championship 26-27 Regionals Season 2",
+      "period": "August 2026 onwards",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Championship Regionals are battle events to decide the No.1 player in the region.",
+      "url": "https://en.onepiece-cardgame.com/events/regional-season2-26-27.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/08/25/sWc3vqoZeg57L9Jr/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/regional-season2-side.html": {
+      "title": "Championship 26-27 Regionals Season 2 Side Event Prize Wall",
+      "period": "August 2026 onwards",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Earn points in these events and then exchange them for a prize of your choice!",
+      "url": "https://en.onepiece-cardgame.com/events/regional-season2-side.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/05/15/Gibl6Lazf4uxqWq3/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/store-tournament-op18.html": {
+      "title": "4th Anniversary Event (OP-18 Release Event)",
+      "period": "November 20 – December 17, 2026",
+      "category": "Regularly Held · Tournament",
+      "regulation": "Standard",
+      "description": "Celebrate ONE PIECE Card Game’s 4th Anniversary and the release of Booster Pack - THE DOMINANCE OF GOD- [OP-18] at a local game store!",
+      "url": "https://en.onepiece-cardgame.com/events/store-tournament-op18.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/10/20/J3XUH0VzVJBNQykM/thumbnail.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/storecs_october.html": {
+      "title": "CS26-27 Store Championship October (Season 2)",
+      "period": "August 2026 onwards",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Championship Regionals are battle events to decide the No.1 player in the region.",
+      "url": "https://en.onepiece-cardgame.com/events/storecs_october.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/07/15/TxRvt8WgoW2vho0N/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/treasure-cup-august-2026.html": {
+      "title": "Treasure Cup August 2026",
+      "period": "August 2026 onwards",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "The ONE PIECE CARD GAME Treasure Cup is a year-round tournament!",
+      "url": "https://en.onepiece-cardgame.com/events/treasure-cup-august-2026.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/07/08/8FYWeeqv690sLt2H/thumbnail_en.webp"
+    },
+    "https://en.onepiece-cardgame.com/events/treasure-cup-dec-2026.html": {
+      "title": "Treasure Cup December 2026",
+      "period": "December 2026 onwards",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "The ONE PIECE CARD GAME Treasure Cup is a year-round tournament!",
+      "url": "https://en.onepiece-cardgame.com/events/treasure-cup-dec-2026.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/14/nIeq4RwfJFSuAmSP/thumbnail_en.webp"
+    }
+  },
+  "revision": 0,
+  "checked_at": "2026-10-25T10:10:51.133124+00:00"
+}
