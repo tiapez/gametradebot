@@ -353,7 +353,7 @@ def product_messages(catalog, preorders=False, categories=None):
 
 HELP = ("Comandi Gametrade:\n/prodotti - prodotti nel database, incluso lo storico\n"
         "/prenotazioni - preordini attuali riletti dal sito\n/start - attiva avvisi\n"
-        "/bandai - calendario aperture registrazioni London\n"
+        "/londra26-27 - calendario aperture registrazioni London\n"
         "/event - tutti gli eventi One Piece attivi\n"
         "/stop - disattiva avvisi e cancella l'iscrizione\n/aiuto - questo messaggio")
 
@@ -392,7 +392,7 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
             elif destination not in subscribers.users:
                 if command.startswith("/"):
                     reply("Invia /start per attivare il bot nella tua chat privata.")
-            elif command == "/bandai":
+            elif command in ("/londra26-27", "/londra26_27", "/bandai"):
                 reply(bandai.calendar_text(bandai_path or state_path.parent / 'bandai.json'))
             elif command in ("/event", "/events"):
                 for event_text in op_events.active_messages(events_path or state_path.parent / 'op_events.json'):

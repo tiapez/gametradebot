@@ -55,6 +55,7 @@ class SubscriberTests(unittest.TestCase):
             state.write_text(json.dumps({'Naruto': {}, 'One Piece': {}}))
             sequence = [('1', '/start', 'private'), ('1', '/start', 'private'),
                         ('2', '/start', 'private'), ('1', '/prodotti', 'private'),
+                        ('1', '/londra26-27', 'private'),
                         ('-3', '/start', 'group'), ('1', '/stop', 'private')]
             updates = [{'update_id': i, 'message': {'chat': {'id': chat, 'type': kind}, 'text': cmd}}
                        for i, (chat, cmd, kind) in enumerate(sequence)]
@@ -67,6 +68,7 @@ class SubscriberTests(unittest.TestCase):
             self.assertEqual(set(store.users), {'2'})
             self.assertFalse(any(chat == '-3' for chat, _ in replies))
             self.assertTrue(all(chat == '1' for chat, text in replies if text.startswith(('Naruto:', 'One Piece:'))))
+            self.assertTrue(any(chat == '1' and 'Calendario Bandai' in text for chat, text in replies))
             self.assertEqual(json.loads((root / 'offset.json').read_text()), len(sequence))
 
 
