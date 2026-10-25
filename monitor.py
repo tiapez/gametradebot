@@ -12,6 +12,7 @@ from urllib.parse import urljoin, urlsplit
 from cryptography.fernet import Fernet
 from datetime import datetime, timezone
 import bandai
+import op_events
 
 BASE = "https://www.gametrade.it"
 CATEGORIES = {"One Piece": BASE + "/Categoria/One_Piece/", "Naruto": BASE + "/Categoria/Naruto/"}
@@ -353,10 +354,12 @@ def product_messages(catalog, preorders=False, categories=None):
 HELP = ("Comandi Gametrade:\n/prodotti - prodotti nel database, incluso lo storico\n"
         "/prenotazioni - preordini attuali riletti dal sito\n/start - attiva avvisi\n"
         "/bandai - calendario aperture registrazioni London\n"
+        "/event - tutti gli eventi One Piece attivi\n"
         "/stop - disattiva avvisi e cancella l'iscrizione\n/aiuto - questo messaggio")
 
 
-def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect, subscribers=None, bandai_path=None):
+def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect,
+                     subscribers=None, bandai_path=None, events_path=None):
     subscribers = subscribers or Subscribers(state_path.parent / "subscribers.enc", chat)
     offset = json.loads(offset_path.read_text(encoding="utf-8")) if offset_path.exists() else 0
     updates = api("getUpdates", {"offset": offset, "timeout": 0, "allowed_updates": ["message"]}, token)
@@ -378,7 +381,7 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
             command = text.split()[0].split("@")[0].lower() if text else ""
             if command == "/start":
                 subscribers.subscribe(destination)
-                reply("Iscrizione attiva! Riceverai le novita One Piece e Naruto, i promemoria Bandai London e gli avvisi sulle modifiche della pagina.\n"
+                reply("Iscrizione attiva! Riceverai le novita One Piece e Naruto, i promemoria Bandai London e gli avvisi su eventi One Piece nuovi o aggiornati.\n"
                       "Conserviamo il tuo ID chat cifrato per inviarti gli avvisi. /stop per cancellare l'iscrizione.\n"
                       "Su GitHub Actions rispondiamo al prossimo controllo (circa 30 minuti).\n\n" + HELP)
             elif command == "/stop":
@@ -391,6 +394,9 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
                     reply("Invia /start per attivare il bot nella tua chat privata.")
             elif command == "/bandai":
                 reply(bandai.calendar_text(bandai_path or state_path.parent / 'bandai.json'))
+            elif command in ("/event", "/events"):
+                for event_text in op_events.active_messages(events_path or state_path.parent / 'op_events.json'):
+                    reply(event_text)
             elif command == "/prodotti":
                 state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
                 for text in product_messages(state):
@@ -424,6 +430,7 @@ def main():
     parser.add_argument("--offset", type=Path, default=Path("data/telegram_offset.json"))
     parser.add_argument("--subscribers", type=Path, default=Path("data/subscribers.enc"))
     parser.add_argument("--bandai-state", type=Path, default=Path("data/bandai.json"))
+    parser.add_argument("--events-state", type=Path, default=Path("data/op_events.json"))
     args = parser.parse_args()
     if args.bandai_dry_run:
         for event in bandai.extract_events(bandai.parse_article(download(bandai.URL))):
@@ -447,13 +454,15 @@ def main():
     subscribers = None if args.dry_run else Subscribers(args.subscribers, chat)
     if args.commands or args.listen:
         if args.commands:
-            process_commands(args.state, args.offset, token, chat, subscribers=subscribers, bandai_path=args.bandai_state)
+            process_commands(args.state, args.offset, token, chat, subscribers=subscribers,
+                             bandai_path=args.bandai_state, events_path=args.events_state)
             return
         print("In ascolto: /prodotti, /prenotazioni, /aiuto. Ctrl+C per uscire.", flush=True)
         try:
             while True:
                 try:
-                    process_commands(args.state, args.offset, token, chat, subscribers=subscribers, bandai_path=args.bandai_state)
+                    process_commands(args.state, args.offset, token, chat, subscribers=subscribers,
+                                     bandai_path=args.bandai_state, events_path=args.events_state)
                 except Exception as exc:
                     print(f"Errore comandi: {type(exc).__name__}. Nuovo tentativo tra 10 secondi.", flush=True)
                 time.sleep(10)
@@ -482,6 +491,11 @@ def main():
         except Exception as exc:
             print(f"ERRORE Bandai: {type(exc).__name__}: {exc}")
             errors.append('Bandai')
+        try:
+            op_events.run_check(args.events_state, download, subscribers, ProductMessage, save)
+        except Exception as exc:
+            print(f"ERRORE eventi One Piece: {type(exc).__name__}: {exc}")
+            errors.append('eventi One Piece')
         try:
             subscribers.deliver(token)
         except RuntimeError as exc:

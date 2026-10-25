@@ -101,6 +101,14 @@ Comando Telegram: `/bandai` mostra il calendario salvato. In locale, `python mon
 
 La memoria è `data/bandai.json`, salvata dal workflow insieme al catalogo. Non cancellarla per evitare nuovi avvisi su eventi già segnalati. Le consegne in attesa rimangono cifrate nell'archivio iscritti. Chi si iscrive dopo l'invio di un promemoria può consultare `/bandai`; non riceve automaticamente i promemoria già inviati. `/stop` interrompe anche gli avvisi Bandai.
 
+## Eventi ONE PIECE CARD GAME
+
+Il bot controlla anche la [pagina ufficiale degli eventi](https://en.onepiece-cardgame.com/events/) ogni 30 minuti circa. Considera attive le schede pubblicate nella pagina principale, escludendo la sezione separata “Past Events”. Al primo controllo salva la base senza inviare decine di avvisi; in seguito avvisa tutti gli iscritti quando compare una nuova scheda o quando cambia nome, periodo, categoria, regolamento, descrizione, immagine o collegamento di un evento esistente.
+
+Il comando `/event` (anche `/events`) elenca tutte le schede attive rilevate nell'ultimo controllo, dividendole in più messaggi quando necessario. Ogni voce include nome, periodo, categoria, eventuale regolamento e descrizione, oltre al collegamento ufficiale. Gli eventi rimossi dalla pagina non generano un avviso, perché la richiesta riguarda eventi nuovi o aggiornati; spariscono però dall'elenco `/event` dopo il controllo successivo.
+
+La memoria è `data/op_events.json` e viene salvata automaticamente da Actions. Una risposta incompleta o una modifica non riconosciuta della pagina interrompe quel controllo senza sostituire la base precedente, evitando falsi avvisi. Modifiche esterne alle schede, come menu e footer, sono ignorate. `/stop` interrompe anche questi avvisi. Non servono nuovi segreti GitHub.
+
 ## Costi e limiti del servizio
 
 - GitHub Actions è gratuito sui repository pubblici con runner standard. I repository privati hanno quote: non presumere che qualsiasi frequenza sia gratuita. [Prezzi ufficiali](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
