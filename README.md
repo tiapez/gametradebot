@@ -117,6 +117,10 @@ Il comando `/op18pre` mostra la data di apertura delle iscrizioni giocatori, il 
 
 Se la data cambia, il calendario e l'eventuale promemoria ancora in attesa vengono aggiornati automaticamente. Se il formato diventa illeggibile, il bot sospende quel promemoria e invia un avviso invece di usare una data vecchia. La memoria è `data/op18.json`; non servono nuovi segreti GitHub. `/stop` interrompe anche questi avvisi.
 
+## Notifiche di aggiornamento del bot
+
+Quando viene distribuita una versione con novità rilevanti, il bot può inviare una notifica riepilogativa una sola volta agli utenti già iscritti. La versione inviata viene registrata in `data/releases.json`, quindi le normali esecuzioni ogni 30 minuti non ripetono il messaggio. La consegna usa la stessa coda cifrata degli altri avvisi: un errore temporaneo viene ritentato solo per il destinatario interessato.
+
 ## Costi e limiti del servizio
 
 - GitHub Actions è gratuito sui repository pubblici con runner standard. I repository privati hanno quote: non presumere che qualsiasi frequenza sia gratuita. [Prezzi ufficiali](https://docs.github.com/en/billing/concepts/product-billing/github-actions).

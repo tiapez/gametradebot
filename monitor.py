@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 import bandai
 import op_events
 import op18
+import release_notice
 
 BASE = "https://www.gametrade.it"
 CATEGORIES = {"One Piece": BASE + "/Categoria/One_Piece/", "Naruto": BASE + "/Categoria/Naruto/"}
@@ -446,6 +447,7 @@ def main():
     parser.add_argument("--bandai-state", type=Path, default=Path("data/bandai.json"))
     parser.add_argument("--events-state", type=Path, default=Path("data/op_events.json"))
     parser.add_argument("--op18-state", type=Path, default=Path("data/op18.json"))
+    parser.add_argument("--release-state", type=Path, default=Path("data/releases.json"))
     args = parser.parse_args()
     if args.bandai_dry_run:
         for event in bandai.extract_events(bandai.parse_article(download(bandai.URL))):
@@ -518,6 +520,11 @@ def main():
         except Exception as exc:
             print(f"ERRORE OP-18: {type(exc).__name__}: {exc}")
             errors.append('OP-18')
+        try:
+            release_notice.enqueue_once(args.release_state, subscribers, ProductMessage, save)
+        except Exception as exc:
+            print(f"ERRORE notifica aggiornamento: {type(exc).__name__}: {exc}")
+            errors.append('notifica aggiornamento')
         try:
             subscribers.deliver(token)
         except RuntimeError as exc:

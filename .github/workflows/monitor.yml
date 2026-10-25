@@ -40,7 +40,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in data/state.json data/telegram_offset.json data/subscribers.enc data/bandai.json data/op_events.json data/op18.json; do
+          for file in data/state.json data/telegram_offset.json data/subscribers.enc data/bandai.json data/op_events.json data/op18.json data/releases.json; do
             if [ -f "$file" ]; then git add "$file"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
