@@ -97,9 +97,9 @@ Il primo controllo salva il riferimento senza notificare una modifica. Le date v
 
 Sono monitorate le aperture delle registrazioni con orario esplicito, non le giornate dei tornei prive di orario. Gli anni impliciti si riferiscono a questa edizione: ottobre 2026 e gennaio 2027. GMT/BST vengono convertiti in Europe/Rome. Non si tratta di un controllo della disponibilità su Weeztix.
 
-Comando Telegram: `/londra26-27` mostra il calendario salvato. È supportata anche la variante `/londra26_27`, utile nei client Telegram che non riconoscono il trattino come parte di un comando; il vecchio `/bandai` resta un alias compatibile ma non viene più mostrato nell'aiuto. In locale, `python monitor.py --bandai-dry-run` legge e stampa le date senza inviare messaggi o modificare dati. `--listen` risponde ai comandi ma, come prima, non esegue il monitoraggio programmato: per controllare pagina e promemoria usa `python monitor.py`. Su Actions tutto è incluso nel controllo ogni 30 minuti, senza nuovi segreti.
+Comando Telegram: `/londra26-27` mostra il calendario salvato. È supportata anche la variante `/londra26_27`, utile nei client Telegram che non riconoscono il trattino come parte di un comando. Il vecchio `/bandai` è stato rimosso e viene trattato come comando sconosciuto. In locale, `python monitor.py --bandai-dry-run` legge e stampa le date senza inviare messaggi o modificare dati. `--listen` risponde ai comandi ma, come prima, non esegue il monitoraggio programmato: per controllare pagina e promemoria usa `python monitor.py`. Su Actions tutto è incluso nel controllo ogni 30 minuti, senza nuovi segreti.
 
-La memoria è `data/bandai.json`, salvata dal workflow insieme al catalogo. Non cancellarla per evitare nuovi avvisi su eventi già segnalati. Le consegne in attesa rimangono cifrate nell'archivio iscritti. Chi si iscrive dopo l'invio di un promemoria può consultare `/bandai`; non riceve automaticamente i promemoria già inviati. `/stop` interrompe anche gli avvisi Bandai.
+La memoria è `data/bandai.json`, salvata dal workflow insieme al catalogo. Non cancellarla per evitare nuovi avvisi su eventi già segnalati. Le consegne in attesa rimangono cifrate nell'archivio iscritti. Chi si iscrive dopo l'invio di un promemoria può consultare `/londra26-27`; non riceve automaticamente i promemoria già inviati. `/stop` interrompe anche gli avvisi London.
 
 ## Eventi ONE PIECE CARD GAME
 
@@ -108,6 +108,14 @@ Il bot controlla anche la [pagina ufficiale degli eventi](https://en.onepiece-ca
 Il comando `/event` (anche `/events`) elenca tutte le schede attive rilevate nell'ultimo controllo, dividendole in più messaggi quando necessario. Ogni voce include nome, periodo, categoria, eventuale regolamento e descrizione, oltre al collegamento ufficiale. Gli eventi rimossi dalla pagina non generano un avviso, perché la richiesta riguarda eventi nuovi o aggiornati; spariscono però dall'elenco `/event` dopo il controllo successivo.
 
 La memoria è `data/op_events.json` e viene salvata automaticamente da Actions. Una risposta incompleta o una modifica non riconosciuta della pagina interrompe quel controllo senza sostituire la base precedente, evitando falsi avvisi. Modifiche esterne alle schede, come menu e footer, sono ignorate. `/stop` interrompe anche questi avvisi. Non servono nuovi segreti GitHub.
+
+## Pre-iscrizione evento OP-18
+
+Il bot controlla ogni 30 minuti anche la pagina ufficiale [4th Anniversary Event (OP-18 Release Event)](https://en.onepiece-cardgame.com/events/store-tournament-op18.html). Al primo controllo salva il contenuto principale senza inviare un avviso; dai controlli successivi segnala agli iscritti modifiche a testi, collegamenti o riferimenti alle immagini, mostrando un riepilogo prima/dopo e il collegamento ufficiale.
+
+Il comando `/op18pre` mostra la data di apertura delle iscrizioni giocatori, il collegamento TCG+ e l'ora dell'ultimo controllo. Attualmente la pagina indica **6 novembre 2026**, senza un orario. In assenza di un orario ufficiale, il promemoria entra in coda dalla mezzanotte italiana del giorno precedente e viene inviato al primo controllo utile del **5 novembre 2026**. Non viene inviato dopo l'apertura.
+
+Se la data cambia, il calendario e l'eventuale promemoria ancora in attesa vengono aggiornati automaticamente. Se il formato diventa illeggibile, il bot sospende quel promemoria e invia un avviso invece di usare una data vecchia. La memoria è `data/op18.json`; non servono nuovi segreti GitHub. `/stop` interrompe anche questi avvisi.
 
 ## Costi e limiti del servizio
 

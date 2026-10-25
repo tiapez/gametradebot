@@ -13,6 +13,7 @@ from cryptography.fernet import Fernet
 from datetime import datetime, timezone
 import bandai
 import op_events
+import op18
 
 BASE = "https://www.gametrade.it"
 CATEGORIES = {"One Piece": BASE + "/Categoria/One_Piece/", "Naruto": BASE + "/Categoria/Naruto/"}
@@ -276,6 +277,16 @@ class Subscribers:
         if changed:
             self.persist()
 
+    def prune_pending(self, prefix, valid_keys):
+        changed = False
+        for pending in self.users.values():
+            for key in list(pending):
+                if key.startswith(prefix) and key not in valid_keys:
+                    del pending[key]
+                    changed = True
+        if changed:
+            self.persist()
+
     def deliver(self, token, api=telegram):
         failed = False
         for chat in list(self.users):
@@ -355,11 +366,12 @@ HELP = ("Comandi Gametrade:\n/prodotti - prodotti nel database, incluso lo stori
         "/prenotazioni - preordini attuali riletti dal sito\n/start - attiva avvisi\n"
         "/londra26-27 - calendario aperture registrazioni London\n"
         "/event - tutti gli eventi One Piece attivi\n"
+        "/op18pre - stato iscrizioni evento OP-18\n"
         "/stop - disattiva avvisi e cancella l'iscrizione\n/aiuto - questo messaggio")
 
 
 def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_catalog=collect,
-                     subscribers=None, bandai_path=None, events_path=None):
+                     subscribers=None, bandai_path=None, events_path=None, op18_path=None):
     subscribers = subscribers or Subscribers(state_path.parent / "subscribers.enc", chat)
     offset = json.loads(offset_path.read_text(encoding="utf-8")) if offset_path.exists() else 0
     updates = api("getUpdates", {"offset": offset, "timeout": 0, "allowed_updates": ["message"]}, token)
@@ -381,7 +393,7 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
             command = text.split()[0].split("@")[0].lower() if text else ""
             if command == "/start":
                 subscribers.subscribe(destination)
-                reply("Iscrizione attiva! Riceverai le novita One Piece e Naruto, i promemoria Bandai London e gli avvisi su eventi One Piece nuovi o aggiornati.\n"
+                reply("Iscrizione attiva! Riceverai le novita One Piece e Naruto, i promemoria London e OP-18 e gli avvisi su eventi One Piece nuovi o aggiornati.\n"
                       "Conserviamo il tuo ID chat cifrato per inviarti gli avvisi. /stop per cancellare l'iscrizione.\n"
                       "Su GitHub Actions rispondiamo al prossimo controllo (circa 30 minuti).\n\n" + HELP)
             elif command == "/stop":
@@ -392,11 +404,13 @@ def process_commands(state_path, offset_path, token, chat, api=telegram, fetch_c
             elif destination not in subscribers.users:
                 if command.startswith("/"):
                     reply("Invia /start per attivare il bot nella tua chat privata.")
-            elif command in ("/londra26-27", "/londra26_27", "/bandai"):
+            elif command in ("/londra26-27", "/londra26_27"):
                 reply(bandai.calendar_text(bandai_path or state_path.parent / 'bandai.json'))
             elif command in ("/event", "/events"):
                 for event_text in op_events.active_messages(events_path or state_path.parent / 'op_events.json'):
                     reply(event_text)
+            elif command == "/op18pre":
+                reply(op18.status_text(op18_path or state_path.parent / 'op18.json'))
             elif command == "/prodotti":
                 state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
                 for text in product_messages(state):
@@ -431,6 +445,7 @@ def main():
     parser.add_argument("--subscribers", type=Path, default=Path("data/subscribers.enc"))
     parser.add_argument("--bandai-state", type=Path, default=Path("data/bandai.json"))
     parser.add_argument("--events-state", type=Path, default=Path("data/op_events.json"))
+    parser.add_argument("--op18-state", type=Path, default=Path("data/op18.json"))
     args = parser.parse_args()
     if args.bandai_dry_run:
         for event in bandai.extract_events(bandai.parse_article(download(bandai.URL))):
@@ -455,14 +470,16 @@ def main():
     if args.commands or args.listen:
         if args.commands:
             process_commands(args.state, args.offset, token, chat, subscribers=subscribers,
-                             bandai_path=args.bandai_state, events_path=args.events_state)
+                             bandai_path=args.bandai_state, events_path=args.events_state,
+                             op18_path=args.op18_state)
             return
         print("In ascolto: /prodotti, /prenotazioni, /aiuto. Ctrl+C per uscire.", flush=True)
         try:
             while True:
                 try:
                     process_commands(args.state, args.offset, token, chat, subscribers=subscribers,
-                                     bandai_path=args.bandai_state, events_path=args.events_state)
+                                     bandai_path=args.bandai_state, events_path=args.events_state,
+                                     op18_path=args.op18_state)
                 except Exception as exc:
                     print(f"Errore comandi: {type(exc).__name__}. Nuovo tentativo tra 10 secondi.", flush=True)
                 time.sleep(10)
@@ -496,6 +513,11 @@ def main():
         except Exception as exc:
             print(f"ERRORE eventi One Piece: {type(exc).__name__}: {exc}")
             errors.append('eventi One Piece')
+        try:
+            op18.run_check(args.op18_state, download, subscribers, ProductMessage, save)
+        except Exception as exc:
+            print(f"ERRORE OP-18: {type(exc).__name__}: {exc}")
+            errors.append('OP-18')
         try:
             subscribers.deliver(token)
         except RuntimeError as exc:
