@@ -60,7 +60,8 @@
       "release_day": "04",
       "title": "Display 8x One Piece Card Game Double Pack Set vol.15 [DP-15] (TCG+ exclusive)",
       "url": "https://www.gametrade.it/Product/149172/Display_8x_One_Piece_Card_Game_Double_Pack_Set_vol15_DP-15_(TCG_exclusive)",
-      "preorder": true
+      "preorder": true,
+      "present": true
     },
     "149171": {
       "image_url": "https://www.lafumetteria.it/public/One_Piece/One_Piece/215x215/149171.jpg",
@@ -68,7 +69,8 @@
       "release_day": "04",
       "title": "Box One Piece Card Game [OP20] (TCG+ priority)",
       "url": "https://www.gametrade.it/Product/149171/Box_One_Piece_Card_Game_OP20_(TCG_priority)",
-      "preorder": true
+      "preorder": true,
+      "present": true
     }
   },
   "Naruto": {}
