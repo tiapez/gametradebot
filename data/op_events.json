@@ -63,6 +63,15 @@
       "url": "https://en.onepiece-cardgame.com/events/Finals-2026s2-lcq.html",
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/10/22/2kPWsobbKBCeN54N/LCQ season 2.webp"
     },
+    "https://en.onepiece-cardgame.com/events/Finals-2026s2-side.html": {
+      "title": "Championship 26-27 Finals Season 2 Side Event Matching Battle",
+      "period": "December-January 2026",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Earn points in these events and then exchange them for a prize of your choice!",
+      "url": "https://en.onepiece-cardgame.com/events/Finals-2026s2-side.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/system/default_onepiece.webp"
+    },
     "https://en.onepiece-cardgame.com/events/bcgfest25-26-orlando.html": {
       "title": "BANDAI CARD GAMES Fest 26-27 in ORLANDO",
       "period": "January 7-10, 2027",
@@ -199,6 +208,6 @@
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/14/nIeq4RwfJFSuAmSP/thumbnail_en.webp"
     }
   },
-  "revision": 0,
-  "checked_at": "2026-10-30T00:27:23.584969+00:00"
+  "revision": 1,
+  "checked_at": "2026-10-30T06:30:46.292723+00:00"
 }
