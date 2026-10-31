@@ -135,15 +135,6 @@
       "url": "https://en.onepiece-cardgame.com/events/malltour2026.html",
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/07/29/7nNWYLQKrtljNPap/thumbnail.webp"
     },
-    "https://en.onepiece-cardgame.com/events/pirates-party-vol3-2026.html": {
-      "title": "Pirates Party 2026 Vol. 3",
-      "period": "September 1 – October 31, 2026",
-      "category": "Regularly Held · Beginner",
-      "regulation": "Standard",
-      "description": "Set Sail for a More Casual Adventure!",
-      "url": "https://en.onepiece-cardgame.com/events/pirates-party-vol3-2026.html",
-      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/08/19/eMiN4gT0xQHlnlJo/thumbnail_en.webp"
-    },
     "https://en.onepiece-cardgame.com/events/pirates-party-vol4-2026.html": {
       "title": "Pirates Party 2026 Vol. 4",
       "period": "November 1 – December 31, 2026",
@@ -209,5 +200,5 @@
     }
   },
   "revision": 1,
-  "checked_at": "2026-10-31T02:26:24.274654+00:00"
+  "checked_at": "2026-10-31T08:55:13.384889+00:00"
 }
