@@ -27,15 +27,6 @@
       "url": "https://en.onepiece-cardgame.com/events/02_483.html",
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/01/GLnYqkysPkjyPx5J/Webpage Logo.webp"
     },
-    "https://en.onepiece-cardgame.com/events/02_523.html": {
-      "title": "LUCCA COMICS & GAMES 2026",
-      "period": "October 28 - November 1, 2026",
-      "category": "Convention Event · Demo",
-      "regulation": "",
-      "description": "Join us at LUCCA COMICS & GAMES 2026 for ONE PIECE Card Game trial sessions, giveaways, and more!",
-      "url": "https://en.onepiece-cardgame.com/events/02_523.html",
-      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/28/PzWM34NvbFIsEWFb/thumbnail.webp"
-    },
     "https://en.onepiece-cardgame.com/events/2026/championship/": {
       "title": "Championship 26-27",
       "period": "March 2026 – March 2027",
@@ -200,5 +191,5 @@
     }
   },
   "revision": 1,
-  "checked_at": "2026-10-31T08:55:13.384889+00:00"
+  "checked_at": "2026-10-31T15:21:49.061448+00:00"
 }
