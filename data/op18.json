@@ -75,12 +75,14 @@
     ]
   },
   "revision": 0,
-  "checked_at": "2026-11-04T22:14:29.393609+00:00",
+  "checked_at": "2026-11-05T02:33:36.379618+00:00",
   "registration": {
     "at": "2026-11-06T00:00:00+01:00",
     "label": "Apertura iscrizioni giocatori OP-18",
     "apply_url": "https://www.bandai-tcg-plus.com/event/"
   },
   "schedule_error": false,
-  "reminders": []
+  "reminders": [
+    "8a0e43a2856e9361f2792f8d"
+  ]
 }
