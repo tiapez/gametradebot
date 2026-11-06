@@ -27,6 +27,15 @@
       "url": "https://en.onepiece-cardgame.com/events/02_483.html",
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/01/GLnYqkysPkjyPx5J/Webpage Logo.webp"
     },
+    "https://en.onepiece-cardgame.com/events/02_553.html": {
+      "title": "Store Treasure Cup 2026 December",
+      "period": "December 4 – 20, 2026",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Store Treasure Cups bring the excitement and prizes of Treasure Cups to selected local game stores.",
+      "url": "https://en.onepiece-cardgame.com/events/02_553.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/11/05/mGZNL1tgO9Y1Cuf4/thumbnail_en.webp"
+    },
     "https://en.onepiece-cardgame.com/events/2026/championship/": {
       "title": "Championship 26-27",
       "period": "March 2026 – March 2027",
@@ -187,9 +196,9 @@
       "regulation": "Standard",
       "description": "The ONE PIECE CARD GAME Treasure Cup is a year-round tournament!",
       "url": "https://en.onepiece-cardgame.com/events/treasure-cup-dec-2026.html",
-      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/14/nIeq4RwfJFSuAmSP/thumbnail_en.webp"
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/11/05/hfsP3ra6lJ3sTlpm/thumbnail_en.webp"
     }
   },
-  "revision": 1,
-  "checked_at": "2026-11-06T03:41:31.860493+00:00"
+  "revision": 3,
+  "checked_at": "2026-11-06T11:33:34.760242+00:00"
 }
