@@ -18,15 +18,6 @@
       "url": "https://en.onepiece-cardgame.com/events/02_452.html",
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/01/8kE4n1TftLvB8Bg7/thumbnail_en.webp"
     },
-    "https://en.onepiece-cardgame.com/events/02_483.html": {
-      "title": "tabletop.me 2026",
-      "period": "November 6 - 8, 2026",
-      "category": "Convention Event · Tournament · Demo",
-      "regulation": "",
-      "description": "Enjoy ONE PIECE CARD GAME at tabletop.me 2026!",
-      "url": "https://en.onepiece-cardgame.com/events/02_483.html",
-      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/09/01/GLnYqkysPkjyPx5J/Webpage Logo.webp"
-    },
     "https://en.onepiece-cardgame.com/events/02_553.html": {
       "title": "Store Treasure Cup 2026 December",
       "period": "December 4 – 20, 2026",
@@ -200,5 +191,5 @@
     }
   },
   "revision": 3,
-  "checked_at": "2026-11-07T23:59:49.397375+00:00"
+  "checked_at": "2026-11-08T06:06:43.331471+00:00"
 }
