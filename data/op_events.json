@@ -18,6 +18,15 @@
       "url": "https://en.onepiece-cardgame.com/events/02_553.html",
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/11/05/mGZNL1tgO9Y1Cuf4/thumbnail_en.webp"
     },
+    "https://en.onepiece-cardgame.com/events/02_573.html": {
+      "title": "ONE PIECE CARD GAME NIKE Collaboration Tournament",
+      "period": "February 1 – April 30, 2027",
+      "category": "Tournament",
+      "regulation": "Standard",
+      "description": "Lace up!",
+      "url": "https://en.onepiece-cardgame.com/events/02_573.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/11/12/uH4b3Xm6MluQlp8W/OPCG_NIKE_1080x108012.webp"
+    },
     "https://en.onepiece-cardgame.com/events/2026/championship/": {
       "title": "Championship 26-27",
       "period": "March 2026 – March 2027",
@@ -153,6 +162,15 @@
       "url": "https://en.onepiece-cardgame.com/events/store-tournament-op18.html",
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/10/20/J3XUH0VzVJBNQykM/thumbnail.webp"
     },
+    "https://en.onepiece-cardgame.com/events/store-tournament-st37-38.html": {
+      "title": "ST-37 & ST-38 Release Event",
+      "period": "December 18, 2026 – January 10, 2027",
+      "category": "Regularly Held · Tournament",
+      "regulation": "Standard",
+      "description": "Join in to commemorate the release of the latest two Starter Decks!",
+      "url": "https://en.onepiece-cardgame.com/events/store-tournament-st37-38.html",
+      "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/11/06/sZP2wQquFjVcZANl/thumbnail_en.webp"
+    },
     "https://en.onepiece-cardgame.com/events/storecs_october.html": {
       "title": "CS26-27 Store Championship October (Season 2)",
       "period": "August 2026 onwards",
@@ -181,6 +199,6 @@
       "image_url": "https://en.onepiece-cardgame.com/onepiececg/bccard/en/news/2026/11/05/hfsP3ra6lJ3sTlpm/thumbnail_en.webp"
     }
   },
-  "revision": 4,
-  "checked_at": "2026-11-13T02:58:04.260504+00:00"
+  "revision": 6,
+  "checked_at": "2026-11-13T11:03:57.324804+00:00"
 }
